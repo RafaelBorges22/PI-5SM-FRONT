@@ -3,6 +3,6 @@ export const Colors = {
   safe: '#1a1a1a',
   gold: '#D4A017',
   goldDark: '#C8941A',
-  white: '#FFFFFF',
+  white: '#F2F2F2',
   black: '#1a1a1a',
 };
