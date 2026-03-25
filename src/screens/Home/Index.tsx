@@ -18,7 +18,7 @@ export default function WelcomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
       <SafeAreaView style={styles.safe}>
         <ImageBackground
-          source={require("../../assets/Background.jpg")}
+          source={require("../../assets/img/Background.jpg")}
           style={styles.container}
           resizeMode="cover"
         >

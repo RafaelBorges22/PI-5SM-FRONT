@@ -5,13 +5,13 @@ import { useFonts } from 'expo-font';
 
 export function Logo() {
   const [fontsLoaded] = useFonts({
-    'InclusiveSans': require('../assets/font/InclusiveSans/static/InclusiveSans-Regular.ttf'),
+    'InclusiveSans': require('../../../assets/fonts/static/InclusiveSans-Regular.ttf'),
   });
   return (
     <View style={styles.container}>
       <View style={styles.glow}>
         <Image
-          source={require('../assets/Logo.png')}
+          source={require('../../../assets/img/Logo.png')}
           style={{ width: 320, height: 320 }}
           resizeMode="contain"
         />
