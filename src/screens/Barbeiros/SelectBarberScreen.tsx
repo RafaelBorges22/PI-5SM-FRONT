@@ -13,6 +13,8 @@ import { BarberCard } from "./components/BarberCard";
 import { SelectBarberTitle } from "./components/SelectBarberTitle";
 import { CancelButton } from "../../components/BtnCancelar";
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 
 const BARBERS = [
   { name: "William", photo: require("../../assets/img/Barbeiro.jpg") },
@@ -21,9 +23,13 @@ const BARBERS = [
   { name: "Leonardo" },
 ];
 
-export default function SelectBarberScreen() {
-  const navigation = useNavigation(); 
+type RootStackParamList = {
+  DigiteSeuNome: undefined;
+  SelectBarber: undefined;
+};
 
+export default function SelectBarberScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
@@ -54,7 +60,7 @@ export default function SelectBarberScreen() {
                         name={left.name}
                         index={rowIndex * 2}
                         photo={left.photo}
-                        onPress={() => navigation.navigate('HomeScreen')}
+                        onPress={() => navigation.navigate('DigiteSeuNome')}
                       />
                     )}
                     {right ? (
@@ -62,7 +68,7 @@ export default function SelectBarberScreen() {
                         name={right.name}
                         index={rowIndex * 2 + 1}
                         photo={right.photo}
-                        onPress={() => navigation.navigate('HomeScreen')}
+                        onPress={() => navigation.navigate('DigiteSeuNome')}
                       />
                     ) : (
                       <View style={styles.emptySlot} />
