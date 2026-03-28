@@ -7,13 +7,22 @@ import {
   View,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
-import { CornerAccent } from "./components/CornerAccent";
+import { CornerAccent } from "../../components/CornerAccent";
 import { Logo } from "./components/Logo";
 import { StartButton } from "./components/StartButton";
 import { WelcomeText } from "./components/TextPrincipal";
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  Home: undefined;
+  SelectBarber: undefined;
+};
 
 export default function WelcomeScreen() {
-  return (
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
       <SafeAreaView style={styles.safe}>
@@ -27,7 +36,9 @@ export default function WelcomeScreen() {
           <View style={styles.content}>
             <Logo />
             <WelcomeText />
-            <StartButton onPress={() => console.log("Iniciar atendimento")} />
+            <StartButton
+                onPress={() => navigation.navigate('SelectBarber')}
+            />          
           </View>
         </ImageBackground>
       </SafeAreaView>
