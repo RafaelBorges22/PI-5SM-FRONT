@@ -17,10 +17,13 @@ import { CornerAccent } from "../../components/CornerAccent";
 import { CancelButton } from "../../components/BtnCancelar";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRoute, RouteProp } from "@react-navigation/native";
 
 type RootStackParamList = {
-  EnterName: undefined;
+  EnterName: { totalPrice: number };
   SelectBarber: undefined;
+  SelectItems: undefined;
+  PaymentScreen: { totalPrice: number };
 };
 
 export default function DigiteSeuNome() {
@@ -57,9 +60,14 @@ export default function DigiteSeuNome() {
 
   const handleConfirm = () => {
     if (canContinue) {
-      navigation.navigate("SelectBarber");
+      navigation.navigate("Payment", {
+        totalPrice: totalPrice,
+      });
     }
   };
+  const route = useRoute<RouteProp<RootStackParamList, "EnterName">>();
+
+  const totalPrice = route.params?.totalPrice ?? 0;
 
   return (
     <>
@@ -80,7 +88,7 @@ export default function DigiteSeuNome() {
             <View style={styles.content}>
               {/* Header with cancel */}
               <View style={styles.header}>
-                <CancelButton onPress={() => navigation.goBack()} />
+                  <CancelButton onPress={() => navigation.goBack()} />
               </View>
 
               {/* Main form area */}

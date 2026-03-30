@@ -24,7 +24,7 @@ const BARBERS = [
 ];
 
 type RootStackParamList = {
-  DigiteSeuNome: undefined;
+  SelectItems: undefined;
   SelectBarber: undefined;
 };
 
@@ -60,7 +60,7 @@ export default function SelectBarberScreen() {
                         name={left.name}
                         index={rowIndex * 2}
                         photo={left.photo}
-                        onPress={() => navigation.navigate('DigiteSeuNome')}
+                        onPress={() => navigation.navigate('SelectItems')}
                       />
                     )}
                     {right ? (
@@ -68,7 +68,7 @@ export default function SelectBarberScreen() {
                         name={right.name}
                         index={rowIndex * 2 + 1}
                         photo={right.photo}
-                        onPress={() => navigation.navigate('DigiteSeuNome')}
+                        onPress={() => navigation.navigate('SelectItems')}
                       />
                     ) : (
                       <View style={styles.emptySlot} />
