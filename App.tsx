@@ -15,7 +15,7 @@ export default function App() {
         <Stack.Screen name="Home"           component={WelcomeScreen} />
         <Stack.Screen name="SelectBarber"   component={SelectBarberScreen} />
         <Stack.Screen name="SelectItems"    component={SelectItemsScreen} />
-        <Stack.Screen name="DigitName"  component={DigiteSeuNome} />
+        <Stack.Screen name="DigiteSeuNome"  component={DigiteSeuNome} />
         <Stack.Screen name="Payment" component={PaymentScreen} />
       </Stack.Navigator>
     </NavigationContainer>

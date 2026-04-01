@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ImageBackground,
   SafeAreaView,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
 import { CornerAccent } from "../../components/CornerAccent";
@@ -15,21 +16,38 @@ import { CancelButton } from "../../components/BtnCancelar";
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-
 const BARBERS = [
-  { name: "William", photo: require("../../assets/img/Barbeiro.jpg") },
-  { name: "Cleison", photo: require("../../assets/img/Barbeiro.jpg") },
-  { name: "Bruno" },
-  { name: "Leonardo" },
+  { name: "Ninguem", photo: require("../../assets/img/Barbeiro.jpg") },
+  { name: "Fulano", photo: require("../../assets/img/Barbeiro.jpg") },
+  { name: "Bruno", photo: require("../../assets/img/Barbeiro.jpg") },
+  { name: "Leonardo", photo: require("../../assets/img/Barbeiro.jpg") },
 ];
 
 type RootStackParamList = {
-  SelectItems: undefined;
+  SelectItems: {
+    nomeBarbeiro: string;
+  };
   SelectBarber: undefined;
 };
 
 export default function SelectBarberScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const [barbeiroSelecionado, setBarbeiroSelecionado] = useState("");
+
+  const handleSelectBarber = (nome: string) => {
+    setBarbeiroSelecionado(nome);
+
+    if (!nome) {
+      Alert.alert("Erro", "Selecione um barbeiro");
+      return;
+    }
+
+    navigation.navigate("SelectItems", {
+      nomeBarbeiro: nome, // ✅ CORRETO
+    });
+  };
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
@@ -53,6 +71,7 @@ export default function SelectBarberScreen() {
               {Array.from({ length: Math.ceil(BARBERS.length / 2) }).map((_, rowIndex) => {
                 const left = BARBERS[rowIndex * 2];
                 const right = BARBERS[rowIndex * 2 + 1];
+
                 return (
                   <View key={rowIndex} style={styles.row}>
                     {left && (
@@ -60,15 +79,16 @@ export default function SelectBarberScreen() {
                         name={left.name}
                         index={rowIndex * 2}
                         photo={left.photo}
-                        onPress={() => navigation.navigate('SelectItems')}
+                        onPress={() => handleSelectBarber(left.name)} // ✅ CORRETO
                       />
                     )}
+
                     {right ? (
                       <BarberCard
                         name={right.name}
                         index={rowIndex * 2 + 1}
                         photo={right.photo}
-                        onPress={() => navigation.navigate('SelectItems')}
+                        onPress={() => handleSelectBarber(right.name)} // ✅ CORRETO
                       />
                     ) : (
                       <View style={styles.emptySlot} />

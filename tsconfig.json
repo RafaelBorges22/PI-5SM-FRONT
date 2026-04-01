@@ -11,5 +11,5 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
-  ]
+, "src/service/services.js", "src/utils/DeepLinkBuilder.ts"  ]
 }
