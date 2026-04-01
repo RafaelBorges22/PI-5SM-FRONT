@@ -20,10 +20,22 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRoute, RouteProp } from "@react-navigation/native";
 
 type RootStackParamList = {
-  EnterName: { totalPrice: number };
+  EnterName: {
+    valor: number;
+    nomeBarbeiro: string;
+    servico: string;
+    produto: string;
+    nomeCliente: string;
+  };
+  Payment: {
+    valor: number;
+    nomeBarbeiro: string;
+    servico: string;
+    produto: string;
+    nomeCliente: string;
+  };
   SelectBarber: undefined;
   SelectItems: undefined;
-  PaymentScreen: { totalPrice: number };
 };
 
 export default function DigiteSeuNome() {
@@ -58,16 +70,25 @@ export default function DigiteSeuNome() {
 
   const canContinue = name.trim().length > 0;
 
-  const handleConfirm = () => {
-    if (canContinue) {
-      navigation.navigate("Payment", {
-        totalPrice: totalPrice,
-      });
-    }
-  };
+const handleConfirm = () => {
+  if (canContinue) {
+    navigation.navigate("Payment", {
+      valor,
+      nomeBarbeiro,
+      servico,
+      produto,
+      nomeCliente: name, 
+    });
+  }
+};
   const route = useRoute<RouteProp<RootStackParamList, "EnterName">>();
 
-  const totalPrice = route.params?.totalPrice ?? 0;
+ const {
+  valor,
+  nomeBarbeiro,
+  servico,
+  produto,
+} = route.params;
 
   return (
     <>
@@ -117,6 +138,7 @@ export default function DigiteSeuNome() {
                     style={styles.confirmButton}
                     onPress={handleConfirm}
                     activeOpacity={0.8}
+                    
                   >
                     <Text style={styles.confirmButtonText}>Confirmar</Text>
                   </TouchableOpacity>

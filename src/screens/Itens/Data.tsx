@@ -1,4 +1,4 @@
-import { Category, Item } from './types';
+import { Category, Item } from './Types';
 
 export const CATEGORIES: { label: Category; icon: string }[] = [
   { label: 'Serviços', icon: '✂️' },
@@ -12,7 +12,7 @@ export const SECTIONS: Record<Category, { section: string; items: Item[] }[]> = 
       section: 'Corte',
       items: [
         { id: 's1', name: 'Corte Simples', price: 35, category: 'Serviços', icon: '✂️' },
-        { id: 's2', name: 'Corte + Barba', price: 60, category: 'Serviços', icon: '💈' },
+        { id: 's2', name: 'Corte + Barba', price: 1, category: 'Serviços', icon: '💈' },
         { id: 's3', name: 'Barba', price: 30, category: 'Serviços', icon: '🪒' },
         { id: 's4', name: 'Sobrancelha', price: 15, category: 'Serviços', icon: '👁️' },
         { id: 's5', name: 'Relaxamento', price: 45, category: 'Serviços', icon: '💆' },
