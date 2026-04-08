@@ -68,3 +68,7 @@ npx expo start
 ou
 npm start
 ```
+---
+## 👨‍💻 Autores
+
+Desenvolvido por **Rafael Mascarenhas Borges**.
