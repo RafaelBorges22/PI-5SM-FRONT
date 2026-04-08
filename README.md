@@ -1,50 +1,70 @@
-# Welcome to your Expo app 👋
+# 💈 UP Barber App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> Aplicação mobile em React Native (Expo) para o sistema de autoatendimento de barbearia.
 
-## Get started
+---
 
-1. Install dependencies
+## 📋 Sobre o Projeto
 
-   ```bash
-   npm install
-   ```
+O **UP Barber App** é o front-end mobile do sistema de autoatendimento da barbearia, inspirado em totens digitais como os do McDonald's. A aplicação permite que clientes realizem:
 
-2. Start the app
+- Visualização de serviço feito
+- Pagamentos via PIX, Cartões de Crédito e Débito
 
-   ```bash
-   npx expo start
-   ```
+O app consome a API desenvolvida em **Spring Boot** para pagamentos via PIX, e utilizando sua conta do **Infinitepay** do dispositivo móvel para pagamentos via cartão com InfiniteTap.
 
-In the output, you'll find options to open the app in a
+Caso de duvidas acesse a documentação:
+- [InfiniteTap](https://www.infinitepay.io/checkout-tap#codeSetupBlock)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+**Repositório do Back-end (API REST):**  
+https://github.com/RafaelBorges22/PI-5SM-BACK
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 🚀 Tecnologias Utilizadas
 
-When you're ready, run:
+| Tecnologia | Finalidade |
+|---|---|
+| React Native | Desenvolvimento mobile |
+| Expo | Ambiente de execução e build |
+| JavaScript / TypeScript | Linguagem principal |
+| Axios / Fetch | Requisições HTTP |
+| Expo Router (opcional) | Navegação |
+| React Navigation | Gerenciamento de telas |
+
+---
+
+## ⚙️ Pré-requisitos
+
+Antes de começar, instale:
+
+- [Node.js 18+](https://nodejs.org/)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- App **Expo Go** no celular (Android/iOS)
+- Backend rodando localmente
+- Conta no Infinitepay
+- Dispositivo movél estar na mesma rede WI-FI da API local
+
+---
+
+## 📦 Instalação
 
 ```bash
-npm run reset-project
+# Clone o repositório
+git clone https://github.com/RafaelBorges22/PI-5SM-FRONT.git
+cd PI-5SM-FRONT
+
+# Instale as dependências
+npm install
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🔧 Variaveis de ambiente .env
+```
+EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:8080/api
+```
+---
+## 🏁 Iniciando o projeto
+```
+npx expo start
+ou
+npm start
+```
