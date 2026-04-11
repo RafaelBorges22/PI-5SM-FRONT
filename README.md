@@ -68,6 +68,9 @@ npx expo start
 ou
 npm start
 ```
+## ⚠️⚠️ Detalhe importante
+Por conta de estar usando o ExpoGo localmente, os pagamentos via Cartão após serem feitos não retornarão a tela de sucesso pois apenas depois do build e autorização de acesso do app podera ser feito essa funcionalidade, então após a confirmação do pagamento voltar manualmente ao app 👍
+
 ---
 ## 👨‍💻 Autores
 
