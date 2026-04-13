@@ -57,6 +57,9 @@ cd PI-5SM-FRONT
 # Instale as dependências
 npm install
 npx expo install expo-dev-client
+
+#Caso não tenha o SDK Android faça o build
+eas build --platform android --profile development
 ```
 ## 🔧 Variaveis de ambiente .env
 ```
