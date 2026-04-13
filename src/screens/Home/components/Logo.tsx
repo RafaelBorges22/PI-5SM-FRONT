@@ -4,9 +4,6 @@ import { useFonts } from 'expo-font';
 
 
 export function Logo() {
-  const [fontsLoaded] = useFonts({
-    'InclusiveSans': require('../../../assets/fonts/static/InclusiveSans-Regular.ttf'),
-  });
   return (
     <View style={styles.container}>
       <View style={styles.glow}>
@@ -16,7 +13,7 @@ export function Logo() {
           resizeMode="contain"
         />
       </View>
-      <Text style={[styles.wordmark, fontsLoaded && { fontFamily: 'InclusiveSans' }]}>
+      <Text style={[styles.wordmark, styles.glow]}>
         BARBER
       </Text>
     </View>
