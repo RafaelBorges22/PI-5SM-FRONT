@@ -67,6 +67,9 @@ EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:8080/api
 npx expo start
 ou
 npm start
+
+#startando como dev (Infinite Tap)
+comando para rodar teste: npx expo start --dev-client
 ```
 ---
 ## 👨‍💻 Autores
