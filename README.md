@@ -56,6 +56,7 @@ cd PI-5SM-FRONT
 
 # Instale as dependências
 npm install
+npx expo install expo-dev-client
 ```
 ## 🔧 Variaveis de ambiente .env
 ```
