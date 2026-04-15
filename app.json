@@ -3,6 +3,7 @@
     "name": "ProjectDSM5SM",
     "slug": "ProjectDSM5SM",
     "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -41,9 +42,6 @@
       }
     },
     "owner": "aladdin_22",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
     "updates": {
       "url": "https://u.expo.dev/5cabe7b2-c504-47d8-9547-c4c723782856"
     }
