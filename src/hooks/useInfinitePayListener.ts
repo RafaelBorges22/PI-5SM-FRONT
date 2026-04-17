@@ -8,6 +8,9 @@ export const useInfinitePayListener = (
   onError?: (url: string) => void
 ) => {
   useEffect(() => {
+    // Guarda o momento em que o listener foi registrado
+    const registeredAt = Date.now();
+
     const handleUrl = (url: string) => {
       if (!url.includes('tap_result')) return;
 
@@ -24,9 +27,12 @@ export const useInfinitePayListener = (
       handleUrl(event.url);
     });
 
-    // Caso o app tenha sido aberto pelo deep link (estava fechado)
+    // ✅ Só processa a initial URL se ela chegou DEPOIS do hook montar
+    // Isso evita processar URLs residuais de sessões anteriores
     Linking.getInitialURL().then((url) => {
-      if (url) handleUrl(url);
+      if (url && Date.now() - registeredAt < 2000) {
+        handleUrl(url);
+      }
     });
 
     return () => subscription.remove();

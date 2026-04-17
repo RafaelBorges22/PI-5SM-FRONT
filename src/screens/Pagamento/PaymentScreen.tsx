@@ -24,6 +24,9 @@ import PixQrCodeScreen from "../Pagamento/PixQRcodeScreen";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faPix } from "@fortawesome/free-brands-svg-icons";
 
+// ⚠️ Substitua pela sua chave PIX real (UUID, CPF, e-mail, telefone, etc.)
+const CHAVE_PIX = "31b007ea-f1f0-48be-a72d-67ed74ddd8d2";
+
 type RootStackParamList = {
   Home: undefined;
   PaymentSuccess: undefined;
@@ -62,22 +65,41 @@ export default function PaymentScreen() {
   const [aguardandoPagamento, setAguardandoPagamento] = useState(false);
   const [servicoPix, setServicoPix] = useState<ServicoResponse | null>(null);
 
-  const metodoMap: Record<string, string> = {
-    dinheiro: "DINHEIRO",
-    credito: "CARTAO_CREDITO",
-    debito: "CARTAO_DEBITO",
-    pix: "PIX",
-  };
-
   const orderId = `DSM-${Date.now()}`;
   const valorEmCentavos = Math.round(valor * 100);
 
-  // ✅ Listener do retorno do InfinitePay via Deep Link
+  // ─── Listener InfinitePay (crédito / débito) ──────────────────────────────
+  // Só chamado após retorno real do deep link — cria o serviço AQUI
   useInfinitePayListener(
-    (result: InfinitePayResult) => {
-      setAguardandoPagamento(false);
-      console.log("✅ Pagamento aprovado:", result);
-      navigation.navigate("PaymentSuccess");
+    async (result: InfinitePayResult) => {
+      console.log("✅ Pagamento aprovado pelo InfinitePay:", result);
+
+      try {
+        // selectedMetodo ainda está no closure com o valor correto
+        const metodoPagamento =
+          selectedMetodo === "credito" ? "CARTAO_CREDITO" : "CARTAO_DEBITO";
+
+        // ✅ Body plano — igual ao ServicoSimples da API
+        await servicoService.criarSimples({
+          valor,
+          nomeCliente,
+          nomeBarbeiro,
+          statusPagamento: "PAGO",
+          metodoPagamento,
+          produto,
+          servico,
+        });
+
+        setAguardandoPagamento(false);
+        navigation.navigate("PaymentSuccess");
+      } catch (error) {
+        setAguardandoPagamento(false);
+        console.error("Erro ao registrar serviço após pagamento:", error);
+        Alert.alert(
+          "Atenção",
+          "Pagamento aprovado, mas houve uma falha ao registrar o serviço. Contate o suporte."
+        );
+      }
     },
     () => {
       setAguardandoPagamento(false);
@@ -85,6 +107,7 @@ export default function PaymentScreen() {
     }
   );
 
+  // ─── Confirmar pagamento ───────────────────────────────────────────────────
   const handleConfirmPayment = async () => {
     if (!selectedMetodo) {
       Alert.alert("Erro", "Selecione um método de pagamento");
@@ -94,18 +117,21 @@ export default function PaymentScreen() {
     setAguardandoPagamento(true);
 
     try {
-      // 💚 PIX → cria serviço e exibe tela do QR Code
+      // 💚 PIX → body com "data" + "pix"
       if (selectedMetodo === "pix") {
-        const response = await servicoService.criar({
+        const response = await servicoService.criarPix({
           data: {
-            valor: String(valor),
+            valor,
             nomeCliente,
             nomeBarbeiro,
             statusPagamento: "PENDENTE",
             metodoPagamento: "PIX",
             produto,
             servico,
-            dataServico: new Date().toISOString(),
+          },
+          pix: {
+            chave: CHAVE_PIX,
+            valor: valor.toFixed(2), // "50.00"
           },
         });
 
@@ -114,37 +140,35 @@ export default function PaymentScreen() {
         return;
       }
 
-      // Para os demais métodos, cria o serviço com status PAGO
-      await servicoService.criar({
-        data: {
-          valor: String(valor),
+      // 💵 Dinheiro → body plano, cria direto e navega
+      if (selectedMetodo === "dinheiro") {
+        await servicoService.criarSimples({
+          valor,
           nomeCliente,
           nomeBarbeiro,
           statusPagamento: "PAGO",
-          metodoPagamento: metodoMap[selectedMetodo] as any,
+          metodoPagamento: "DINHEIRO",
           produto,
           servico,
-          dataServico: new Date().toISOString(),
-        },
-      });
+        });
 
-      // 💳 Crédito → abre InfinitePay e aguarda deep link de retorno
+        navigation.navigate("PaymentSuccess");
+        return;
+      }
+
+      // 💳 Crédito → abre InfinitePay; serviço criado no listener
       if (selectedMetodo === "credito") {
         await payWithCredit(valorEmCentavos, orderId, 1);
-        // ❌ NÃO navega aqui — o listener cuida do retorno
+        // aguardandoPagamento fica true até o listener responder
         return;
       }
 
-      // 💳 Débito → abre InfinitePay e aguarda deep link de retorno
+      // 💳 Débito → abre InfinitePay; serviço criado no listener
       if (selectedMetodo === "debito") {
         await payWithDebit(valorEmCentavos, orderId);
-        // ❌ NÃO navega aqui — o listener cuida do retorno
+        // aguardandoPagamento fica true até o listener responder
         return;
       }
-
-      // 💵 Dinheiro → vai direto para sucesso
-      navigation.navigate("PaymentSuccess");
-
     } catch (error) {
       setAguardandoPagamento(false);
       console.error(error);
@@ -152,7 +176,7 @@ export default function PaymentScreen() {
     }
   };
 
-  // ✅ Exibe tela do QR Code PIX quando serviço PIX for criado
+  // ─── Tela PIX QR Code ─────────────────────────────────────────────────────
   if (servicoPix) {
     return (
       <PixQrCodeScreen
@@ -165,6 +189,7 @@ export default function PaymentScreen() {
     );
   }
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
@@ -278,87 +303,92 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 28,
-    justifyContent: "space-between",
+    paddingTop: 32,
+    paddingBottom: 24,
+    justifyContent: "center",
+    gap: 16,
   },
   infoBox: {
-    alignItems: "center",
-    marginBottom: 10,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 12,
+    padding: 16,
   },
   label: {
-    color: "#94A3B8",
-    fontSize: 14,
+    color: "#aaa",
+    fontSize: 12,
+    marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   value: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 4,
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
   },
   totalContainer: {
     alignItems: "center",
-    marginTop: -20,
+    marginVertical: 8,
   },
   totalLabel: {
-    color: "#94A3B8",
-    fontSize: 16,
+    color: "#aaa",
+    fontSize: 14,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   totalValue: {
-    color: "#FFFFFF",
-    fontSize: 32,
-    fontWeight: "bold",
-    marginTop: 6,
-  },
-  confirmButton: {
-    backgroundColor: Colors.gold,
-    padding: 18,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  confirmButtonDisabled: {
-    backgroundColor: "#94A3B8",
-  },
-  confirmText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "#fff",
+    fontSize: 36,
+    fontWeight: "700",
+    marginTop: 4,
   },
   methodsContainer: {
-    gap: 12,
+    gap: 10,
   },
   methodButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 18,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: "rgba(255,255,255,0.12)",
   },
   selected: {
-    borderColor: Colors.gold,
-    backgroundColor: "rgba(212,160,23,0.15)",
+    borderColor: Colors.white ?? "#fff",
+    backgroundColor: "rgba(255,255,255,0.15)",
   },
   methodIcon: {
-    fontSize: 24,
+    fontSize: 22,
     marginRight: 14,
   },
   methodText: {
+    color: "#fff",
+    fontSize: 16,
     flex: 1,
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "bold",
+    fontWeight: "500",
   },
   methodArrow: {
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 26,
-    fontWeight: "300",
+    color: "#aaa",
+    fontSize: 22,
+  },
+  confirmButton: {
+    backgroundColor: Colors.white ?? "#fff",
+    borderRadius: 12,
+    padding: 18,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  confirmButtonDisabled: {
+    opacity: 0.5,
+  },
+  confirmText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });
