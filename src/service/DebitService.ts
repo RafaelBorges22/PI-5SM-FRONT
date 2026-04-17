@@ -1,17 +1,14 @@
-import { Linking } from "react-native";
-import { buildInfinitePayUrl } from "../utils/DeepLinkBuilder";
+// src/services/payWithDebit.ts
+import { startPayment } from './InfinitePayService';
 
 export const payWithDebit = async (
   amount: number,
   orderId: string
-) => {
-
-  const url = buildInfinitePayUrl({
+): Promise<void> => {
+  await startPayment({
     amount,
     orderId,
-    resultUrl: "projectdsm5sm://tap_result",
-    paymentMethod: "debit"
+    resultUrl: 'projectdsm5sm://tap_result',
+    paymentMethod: 'debit',
   });
-
-  await Linking.openURL(url);
 };
