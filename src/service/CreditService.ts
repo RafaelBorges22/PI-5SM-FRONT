@@ -1,19 +1,16 @@
-import { Linking } from "react-native";
-import { buildInfinitePayUrl } from "../utils/DeepLinkBuilder";
+// src/services/payWithCredit.ts
+import { startPayment } from './InfinitePayService';
 
 export const payWithCredit = async (
   amount: number,
   orderId: string,
   installments: number
-) => {
-
-  const url = buildInfinitePayUrl({
+): Promise<void> => {
+  await startPayment({
     amount,
     orderId,
-    resultUrl: "projectdsm5sm://tap_result",
-    paymentMethod: "credit",
-    installments
+    resultUrl: 'projectdsm5sm://tap_result',
+    paymentMethod: 'credit',
+    installments,
   });
-
-  await Linking.openURL(url);
 };

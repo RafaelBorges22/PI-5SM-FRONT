@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   ImageBackground,
   SafeAreaView,
@@ -7,7 +7,8 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -19,10 +20,13 @@ import { payWithDebit } from "../../service/DebitService";
 import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
 import { InfinitePayResult } from "../../utils/parseInfinitePayResult";
 import { servicoService } from "../../service/ServicoService";
-import { ServicoResponse, MetodoPagamento } from "../../types/Servico"; // Importando o Type do seu arquivo
+import { ServicoResponse } from "../../types/Servico";
+import { MetodoPagamento } from "../../enum/PaymentMethod";
 import PixQrCodeScreen from "../Pagamento/PixQRcodeScreen";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faPix } from "@fortawesome/free-brands-svg-icons";
+
+const PIX_CHAVE = "31b007ea-f1f0-48be-a72d-67ed74ddd8d2";
 
 type RootStackParamList = {
   Home: undefined;
@@ -36,123 +40,191 @@ type RootStackParamList = {
   };
 };
 
+// ─── Tipos do Modal ───────────────────────────────────────────────────────────
+type ModalConfig = {
+  visible: boolean;
+  titulo: string;
+  mensagem: string;
+  tipo: "erro" | "aviso" | "cancelado" | "processando";
+  onConfirm?: () => void;
+};
+
+const modalInicial: ModalConfig = {
+  visible: false,
+  titulo: "",
+  mensagem: "",
+  tipo: "aviso",
+  onConfirm: undefined,
+};
+
 export default function PaymentScreen() {
   const route = useRoute();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { nomeBarbeiro, valor, servico, produto, nomeCliente } =
-    route.params as {
-      nomeBarbeiro: string;
-      valor: number;
-      servico: string;
-      produto: string;
-      nomeCliente: string;
-    };
+    route.params as RootStackParamList["Payment"];
 
-  // Agora o estado usa o tipo MetodoPagamento vindo do seu types/Servico.ts
   const [selectedMetodo, setSelectedMetodo] = useState<MetodoPagamento | null>(null);
   const [aguardandoPagamento, setAguardandoPagamento] = useState(false);
   const [servicoPix, setServicoPix] = useState<ServicoResponse | null>(null);
+  const [modal, setModal] = useState<ModalConfig>(modalInicial);
+
+  const selectedMetodoRef = useRef<MetodoPagamento | null>(null);
 
   const orderId = `DSM-${Date.now()}`;
   const valorEmCentavos = Math.round(valor * 100);
 
-  // ─── Listener InfinitePay (Cartões) ──────────────────────────────
+  // ─── Helpers do Modal ─────────────────────────────────────────────────────────
+  const fecharModal = () => setModal((m) => ({ ...m, visible: false }));
+
+  const mostrarModal = (config: Omit<ModalConfig, "visible">) => {
+    setModal({ ...config, visible: true });
+  };
+
+  // ─── Listener InfinitePay ─────────────────────────────────────────────────────
   useInfinitePayListener(
-    async (result: InfinitePayResult) => {
+    async (_result: InfinitePayResult) => {
+      const metodo = selectedMetodoRef.current;
+      if (!metodo) return;
+
       try {
         await servicoService.criarSimples({
           valor,
           nomeCliente,
           nomeBarbeiro,
           statusPagamento: "PAGO",
-          metodoPagamento: selectedMetodo!, 
+          metodoPagamento:
+            metodo === MetodoPagamento.CARTAO_CREDITO
+              ? "CARTAO_CREDITO"
+              : "CARTAO_DEBITO",
           produto,
           servico,
         });
 
         setAguardandoPagamento(false);
         navigation.navigate("PaymentSuccess");
-      } catch (error) {
+      } catch {
         setAguardandoPagamento(false);
-        Alert.alert("Erro", "Pagamento aprovado, mas falhou ao registrar.");
+        mostrarModal({
+          tipo: "aviso",
+          titulo: "Atenção",
+          mensagem:
+            "Pagamento aprovado na máquina, mas falhou ao registrar. Entre em contato com o suporte.",
+        });
       }
     },
     () => {
       setAguardandoPagamento(false);
-      Alert.alert("Cancelado", "Pagamento não concluído.");
+      mostrarModal({
+        tipo: "cancelado",
+        titulo: "Cancelado",
+        mensagem: "Pagamento não concluído.",
+      });
     }
   );
 
-  // ─── Confirmar Pagamento ──────────────────────────────────────────
+  // ─── Seleção de método ────────────────────────────────────────────────────────
+  const handleSelectMetodo = (metodo: MetodoPagamento) => {
+    setSelectedMetodo(metodo);
+    selectedMetodoRef.current = metodo;
+  };
+
+  // ─── Confirmação ─────────────────────────────────────────────────────────────
   const handleConfirmPayment = async () => {
     if (!selectedMetodo) {
-      Alert.alert("Erro", "Selecione um método de pagamento");
+      mostrarModal({
+        tipo: "erro",
+        titulo: "Atenção",
+        mensagem: "Selecione um método de pagamento.",
+      });
       return;
     }
 
     setAguardandoPagamento(true);
 
     try {
-      if (selectedMetodo === 'PIX') {
+      if (selectedMetodo === MetodoPagamento.PIX) {
         const response = await servicoService.criarPix({
           data: {
-            valor: valor.toString(), // Seu ServicoData pede string no valor
+            valor,
             nomeCliente,
             nomeBarbeiro,
             statusPagamento: "PENDENTE",
-            metodoPagamento: 'PIX',
+            metodoPagamento: "PIX",
             produto,
             servico,
-            dataServico: new Date().toISOString(),
-          }
+          },
+          pix: {
+            chave: PIX_CHAVE,
+            valor: valor.toFixed(2),
+          },
         });
-
         setServicoPix(response);
         setAguardandoPagamento(false);
-        return;
       }
 
-      if (selectedMetodo === 'DINHEIRO') {
+      else if (selectedMetodo === MetodoPagamento.DINHEIRO) {
         await servicoService.criarSimples({
           valor,
           nomeCliente,
           nomeBarbeiro,
           statusPagamento: "PAGO",
-          metodoPagamento: 'DINHEIRO',
+          metodoPagamento: "DINHEIRO",
           produto,
           servico,
         });
-
+        setAguardandoPagamento(false);
         navigation.navigate("PaymentSuccess");
-        return;
       }
 
-      if (selectedMetodo === 'CARTAO_CREDITO') {
+      else if (selectedMetodo === MetodoPagamento.CARTAO_CREDITO) {
+        selectedMetodoRef.current = MetodoPagamento.CARTAO_CREDITO;
         await payWithCredit(valorEmCentavos, orderId, 1);
-        return;
       }
 
-      if (selectedMetodo === 'CARTAO_DEBITO') {
+      else if (selectedMetodo === MetodoPagamento.CARTAO_DEBITO) {
+        selectedMetodoRef.current = MetodoPagamento.CARTAO_DEBITO;
         await payWithDebit(valorEmCentavos, orderId);
-        return;
       }
+
     } catch (error) {
       setAguardandoPagamento(false);
-      Alert.alert("Erro", "Falha na comunicação com o servidor.");
+      const mensagem =
+        error instanceof Error ? error.message : "Erro desconhecido.";
+      mostrarModal({
+        tipo: "erro",
+        titulo: "Erro",
+        mensagem,
+      });
     }
   };
 
+  // ─── Ícone por tipo ───────────────────────────────────────────────────────────
+  const iconeModal = (tipo: ModalConfig["tipo"]) => {
+    switch (tipo) {
+      case "erro":     return { simbolo: "✕", cor: "#c0392b" };
+      case "aviso":    return { simbolo: "!", cor: Colors.gold };
+      case "cancelado":return { simbolo: "✕", cor: Colors.gold };
+      case "processando": return { simbolo: "...", cor: Colors.gold };
+    }
+  };
+
+  // ─── Render PIX ───────────────────────────────────────────────────────────────
   if (servicoPix) {
     return (
       <PixQrCodeScreen
         servico={servicoPix}
         onVoltar={() => setServicoPix(null)}
-        onTimeout={() => navigation.reset({ index: 0, routes: [{ name: "Home" }] })}
+        onTimeout={() =>
+          navigation.reset({ index: 0, routes: [{ name: "Home" }] })
+        }
       />
     );
   }
 
+  const icone = iconeModal(modal.tipo);
+
+  // ─── Render principal ─────────────────────────────────────────────────────────
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
@@ -177,36 +249,57 @@ export default function PaymentScreen() {
             </View>
 
             <View style={styles.methodsContainer}>
+              {/* PIX */}
               <TouchableOpacity
-                style={[styles.methodButton, selectedMetodo === 'PIX' && styles.selected]}
-                onPress={() => setSelectedMetodo('PIX')}
+                style={[
+                  styles.methodButton,
+                  selectedMetodo === MetodoPagamento.PIX && styles.selected,
+                ]}
+                onPress={() => handleSelectMetodo(MetodoPagamento.PIX)}
               >
-                <FontAwesomeIcon icon={faPix} size={24} color="#32BCAD" style={{ marginRight: 14 }} />
+                <FontAwesomeIcon
+                  icon={faPix}
+                  size={24}
+                  color="#32BCAD"
+                  style={{ marginRight: 14 }}
+                />
                 <Text style={styles.methodText}>PIX</Text>
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
+              {/* DINHEIRO */}
               <TouchableOpacity
-                style={[styles.methodButton, selectedMetodo === 'DINHEIRO' && styles.selected]}
-                onPress={() => setSelectedMetodo('DINHEIRO')}
+                style={[
+                  styles.methodButton,
+                  selectedMetodo === MetodoPagamento.DINHEIRO && styles.selected,
+                ]}
+                onPress={() => handleSelectMetodo(MetodoPagamento.DINHEIRO)}
               >
                 <Text style={styles.methodIcon}>💵</Text>
                 <Text style={styles.methodText}>Dinheiro</Text>
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
+              {/* DÉBITO */}
               <TouchableOpacity
-                style={[styles.methodButton, selectedMetodo === 'CARTAO_DEBITO' && styles.selected]}
-                onPress={() => setSelectedMetodo('CARTAO_DEBITO')}
+                style={[
+                  styles.methodButton,
+                  selectedMetodo === MetodoPagamento.CARTAO_DEBITO && styles.selected,
+                ]}
+                onPress={() => handleSelectMetodo(MetodoPagamento.CARTAO_DEBITO)}
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Débito</Text>
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
+              {/* CRÉDITO */}
               <TouchableOpacity
-                style={[styles.methodButton, selectedMetodo === 'CARTAO_CREDITO' && styles.selected]}
-                onPress={() => setSelectedMetodo('CARTAO_CREDITO')}
+                style={[
+                  styles.methodButton,
+                  selectedMetodo === MetodoPagamento.CARTAO_CREDITO && styles.selected,
+                ]}
+                onPress={() => handleSelectMetodo(MetodoPagamento.CARTAO_CREDITO)}
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Crédito</Text>
@@ -215,48 +308,201 @@ export default function PaymentScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.confirmButton, aguardandoPagamento && styles.confirmButtonDisabled]}
+              style={[
+                styles.confirmButton,
+                aguardandoPagamento && styles.confirmButtonDisabled,
+              ]}
               onPress={handleConfirmPayment}
               disabled={aguardandoPagamento}
             >
-              <Text style={styles.confirmText}>
-                {aguardandoPagamento ? "Processando..." : "Confirmar Pagamento"}
-              </Text>
+              {aguardandoPagamento ? (
+                <ActivityIndicator color="#1a1a1a" />
+              ) : (
+                <Text style={styles.confirmText}>Confirmar Pagamento</Text>
+              )}
             </TouchableOpacity>
 
             <CancelButton onPress={() => navigation.goBack()} />
           </View>
         </ImageBackground>
       </SafeAreaView>
+
+      {/* ─── Modal ─────────────────────────────────────────────────────────────── */}
+      <Modal
+        visible={modal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={fecharModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            {/* Ícone */}
+            <View style={[styles.modalIconCircle, { borderColor: icone.cor }]}>
+              <Text style={[styles.modalIconText, { color: icone.cor }]}>
+                {icone.simbolo}
+              </Text>
+            </View>
+
+            {/* Título */}
+            <Text style={styles.modalTitulo}>{modal.titulo}</Text>
+
+            {/* Mensagem */}
+            <Text style={styles.modalMensagem}>{modal.mensagem}</Text>
+
+            {/* Botão */}
+            <TouchableOpacity
+              style={styles.modalBotao}
+              onPress={() => {
+                fecharModal();
+                modal.onConfirm?.();
+              }}
+            >
+              <Text style={styles.modalBotaoTexto}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.safe },
-  container: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 24, justifyContent: "center", gap: 16 },
-  infoBox: { backgroundColor: "rgba(0,0,0,0.4)", borderRadius: 12, padding: 16 },
-  label: { color: "#aaa", fontSize: 12, textTransform: "uppercase", letterSpacing: 1 },
-  value: { color: "#fff", fontSize: 18, fontWeight: "600" },
-  totalContainer: { alignItems: "center", marginVertical: 8 },
-  totalLabel: { color: "#aaa", fontSize: 14, textTransform: "uppercase" },
-  totalValue: { color: "#fff", fontSize: 36, fontWeight: "700" },
-  methodsContainer: { gap: 10 },
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.safe,
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+  },
+  infoBox: {
+    marginBottom: 16,
+  },
+  label: {
+    color: "#aaa",
+    fontSize: 13,
+  },
+  value: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  totalContainer: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  totalLabel: {
+    color: "#aaa",
+    fontSize: 14,
+  },
+  totalValue: {
+    color: Colors.gold,
+    fontSize: 36,
+    fontWeight: "700",
+  },
+  methodsContainer: {
+    gap: 12,
+    marginBottom: 32,
+  },
   methodButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#2a2a2a",
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: "#3a3a3a",
   },
-  selected: { borderColor: "#fff", backgroundColor: "rgba(255,255,255,0.15)" },
-  methodIcon: { fontSize: 22, marginRight: 14 },
-  methodText: { color: "#fff", fontSize: 16, flex: 1, fontWeight: "500" },
-  methodArrow: { color: "#aaa", fontSize: 22 },
-  confirmButton: { backgroundColor: "#fff", borderRadius: 12, padding: 18, alignItems: "center", marginTop: 8 },
-  confirmButtonDisabled: { opacity: 0.5 },
-  confirmText: { color: "#000", fontSize: 16, fontWeight: "700" },
+  selected: {
+    borderColor: Colors.gold,
+    backgroundColor: "#2e2a1a",
+  },
+  methodIcon: {
+    fontSize: 22,
+    marginRight: 14,
+  },
+  methodText: {
+    flex: 1,
+    color: Colors.white,
+    fontSize: 16,
+  },
+  methodArrow: {
+    color: "#aaa",
+    fontSize: 20,
+  },
+  confirmButton: {
+    backgroundColor: Colors.gold,
+    borderRadius: 12,
+    padding: 18,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  confirmButtonDisabled: {
+    opacity: 0.5,
+  },
+  confirmText: {
+    color: Colors.black,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  // ─── Modal ──────────────────────────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 32,
+  },
+  modalBox: {
+    backgroundColor: "#242424",
+    borderRadius: 16,
+    padding: 28,
+    alignItems: "center",
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  modalIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalIconText: {
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  modalTitulo: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalMensagem: {
+    color: "#aaa",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  modalBotao: {
+    backgroundColor: Colors.gold,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 48,
+  },
+  modalBotaoTexto: {
+    color: Colors.black,
+    fontSize: 15,
+    fontWeight: "700",
+  },
 });
