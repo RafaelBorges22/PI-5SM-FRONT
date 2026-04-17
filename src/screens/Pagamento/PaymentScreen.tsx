@@ -19,25 +19,14 @@ import { payWithDebit } from "../../service/DebitService";
 import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
 import { InfinitePayResult } from "../../utils/parseInfinitePayResult";
 import { servicoService } from "../../service/ServicoService";
-import { ServicoResponse } from "../../types/Servico";
+import { ServicoResponse, MetodoPagamento } from "../../types/Servico"; // Importando o Type do seu arquivo
 import PixQrCodeScreen from "../Pagamento/PixQRcodeScreen";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faPix } from "@fortawesome/free-brands-svg-icons";
 
-// ⚠️ Substitua pela sua chave PIX real (UUID, CPF, e-mail, telefone, etc.)
-const CHAVE_PIX = "31b007ea-f1f0-48be-a72d-67ed74ddd8d2";
-
 type RootStackParamList = {
   Home: undefined;
   PaymentSuccess: undefined;
-  SelectBarber: undefined;
-  SelectItems: { nomeBarbeiro: string };
-  DigiteSeuNome: {
-    valor: number;
-    nomeBarbeiro: string;
-    servico: string;
-    produto: string;
-  };
   Payment: {
     valor: number;
     nomeBarbeiro: string;
@@ -49,8 +38,7 @@ type RootStackParamList = {
 
 export default function PaymentScreen() {
   const route = useRoute();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { nomeBarbeiro, valor, servico, produto, nomeCliente } =
     route.params as {
@@ -61,31 +49,24 @@ export default function PaymentScreen() {
       nomeCliente: string;
     };
 
-  const [selectedMetodo, setSelectedMetodo] = useState<string>("");
+  // Agora o estado usa o tipo MetodoPagamento vindo do seu types/Servico.ts
+  const [selectedMetodo, setSelectedMetodo] = useState<MetodoPagamento | null>(null);
   const [aguardandoPagamento, setAguardandoPagamento] = useState(false);
   const [servicoPix, setServicoPix] = useState<ServicoResponse | null>(null);
 
   const orderId = `DSM-${Date.now()}`;
   const valorEmCentavos = Math.round(valor * 100);
 
-  // ─── Listener InfinitePay (crédito / débito) ──────────────────────────────
-  // Só chamado após retorno real do deep link — cria o serviço AQUI
+  // ─── Listener InfinitePay (Cartões) ──────────────────────────────
   useInfinitePayListener(
     async (result: InfinitePayResult) => {
-      console.log("✅ Pagamento aprovado pelo InfinitePay:", result);
-
       try {
-        // selectedMetodo ainda está no closure com o valor correto
-        const metodoPagamento =
-          selectedMetodo === "credito" ? "CARTAO_CREDITO" : "CARTAO_DEBITO";
-
-        // ✅ Body plano — igual ao ServicoSimples da API
         await servicoService.criarSimples({
           valor,
           nomeCliente,
           nomeBarbeiro,
           statusPagamento: "PAGO",
-          metodoPagamento,
+          metodoPagamento: selectedMetodo!, 
           produto,
           servico,
         });
@@ -94,20 +75,16 @@ export default function PaymentScreen() {
         navigation.navigate("PaymentSuccess");
       } catch (error) {
         setAguardandoPagamento(false);
-        console.error("Erro ao registrar serviço após pagamento:", error);
-        Alert.alert(
-          "Atenção",
-          "Pagamento aprovado, mas houve uma falha ao registrar o serviço. Contate o suporte."
-        );
+        Alert.alert("Erro", "Pagamento aprovado, mas falhou ao registrar.");
       }
     },
     () => {
       setAguardandoPagamento(false);
-      Alert.alert("Pagamento não aprovado", "Tente novamente.");
+      Alert.alert("Cancelado", "Pagamento não concluído.");
     }
   );
 
-  // ─── Confirmar pagamento ───────────────────────────────────────────────────
+  // ─── Confirmar Pagamento ──────────────────────────────────────────
   const handleConfirmPayment = async () => {
     if (!selectedMetodo) {
       Alert.alert("Erro", "Selecione um método de pagamento");
@@ -117,22 +94,18 @@ export default function PaymentScreen() {
     setAguardandoPagamento(true);
 
     try {
-      // 💚 PIX → body com "data" + "pix"
-      if (selectedMetodo === "pix") {
+      if (selectedMetodo === 'PIX') {
         const response = await servicoService.criarPix({
           data: {
-            valor,
+            valor: valor.toString(), // Seu ServicoData pede string no valor
             nomeCliente,
             nomeBarbeiro,
             statusPagamento: "PENDENTE",
-            metodoPagamento: "PIX",
+            metodoPagamento: 'PIX',
             produto,
             servico,
-          },
-          pix: {
-            chave: CHAVE_PIX,
-            valor: valor.toFixed(2), // "50.00"
-          },
+            dataServico: new Date().toISOString(),
+          }
         });
 
         setServicoPix(response);
@@ -140,14 +113,13 @@ export default function PaymentScreen() {
         return;
       }
 
-      // 💵 Dinheiro → body plano, cria direto e navega
-      if (selectedMetodo === "dinheiro") {
+      if (selectedMetodo === 'DINHEIRO') {
         await servicoService.criarSimples({
           valor,
           nomeCliente,
           nomeBarbeiro,
           statusPagamento: "PAGO",
-          metodoPagamento: "DINHEIRO",
+          metodoPagamento: 'DINHEIRO',
           produto,
           servico,
         });
@@ -156,44 +128,34 @@ export default function PaymentScreen() {
         return;
       }
 
-      // 💳 Crédito → abre InfinitePay; serviço criado no listener
-      if (selectedMetodo === "credito") {
+      if (selectedMetodo === 'CARTAO_CREDITO') {
         await payWithCredit(valorEmCentavos, orderId, 1);
-        // aguardandoPagamento fica true até o listener responder
         return;
       }
 
-      // 💳 Débito → abre InfinitePay; serviço criado no listener
-      if (selectedMetodo === "debito") {
+      if (selectedMetodo === 'CARTAO_DEBITO') {
         await payWithDebit(valorEmCentavos, orderId);
-        // aguardandoPagamento fica true até o listener responder
         return;
       }
     } catch (error) {
       setAguardandoPagamento(false);
-      console.error(error);
-      Alert.alert("Erro", "Falha ao registrar o pedido. Tente novamente.");
+      Alert.alert("Erro", "Falha na comunicação com o servidor.");
     }
   };
 
-  // ─── Tela PIX QR Code ─────────────────────────────────────────────────────
   if (servicoPix) {
     return (
       <PixQrCodeScreen
         servico={servicoPix}
         onVoltar={() => setServicoPix(null)}
-        onTimeout={() =>
-          navigation.reset({ index: 0, routes: [{ name: "Home" }] })
-        }
+        onTimeout={() => navigation.reset({ index: 0, routes: [{ name: "Home" }] })}
       />
     );
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
-
       <SafeAreaView style={styles.safe}>
         <ImageBackground
           source={require("../../assets/img/Background.jpg")}
@@ -204,43 +166,29 @@ export default function PaymentScreen() {
           <CornerAccent position="bottomLeft" />
 
           <View style={styles.content}>
-            {/* BARBEIRO */}
             <View style={styles.infoBox}>
               <Text style={styles.label}>Barbeiro</Text>
               <Text style={styles.value}>{nomeBarbeiro}</Text>
             </View>
 
-            {/* TOTAL */}
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>R$ {valor.toFixed(2)}</Text>
             </View>
 
-            {/* MÉTODOS */}
             <View style={styles.methodsContainer}>
               <TouchableOpacity
-                style={[
-                  styles.methodButton,
-                  selectedMetodo === "pix" && styles.selected,
-                ]}
-                onPress={() => setSelectedMetodo("pix")}
+                style={[styles.methodButton, selectedMetodo === 'PIX' && styles.selected]}
+                onPress={() => setSelectedMetodo('PIX')}
               >
-                <FontAwesomeIcon
-                  icon={faPix}
-                  size={24}
-                  color="#32BCAD"
-                  style={{ marginRight: 14 }}
-                />
+                <FontAwesomeIcon icon={faPix} size={24} color="#32BCAD" style={{ marginRight: 14 }} />
                 <Text style={styles.methodText}>PIX</Text>
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[
-                  styles.methodButton,
-                  selectedMetodo === "dinheiro" && styles.selected,
-                ]}
-                onPress={() => setSelectedMetodo("dinheiro")}
+                style={[styles.methodButton, selectedMetodo === 'DINHEIRO' && styles.selected]}
+                onPress={() => setSelectedMetodo('DINHEIRO')}
               >
                 <Text style={styles.methodIcon}>💵</Text>
                 <Text style={styles.methodText}>Dinheiro</Text>
@@ -248,11 +196,8 @@ export default function PaymentScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[
-                  styles.methodButton,
-                  selectedMetodo === "debito" && styles.selected,
-                ]}
-                onPress={() => setSelectedMetodo("debito")}
+                style={[styles.methodButton, selectedMetodo === 'CARTAO_DEBITO' && styles.selected]}
+                onPress={() => setSelectedMetodo('CARTAO_DEBITO')}
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Débito</Text>
@@ -260,11 +205,8 @@ export default function PaymentScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[
-                  styles.methodButton,
-                  selectedMetodo === "credito" && styles.selected,
-                ]}
-                onPress={() => setSelectedMetodo("credito")}
+                style={[styles.methodButton, selectedMetodo === 'CARTAO_CREDITO' && styles.selected]}
+                onPress={() => setSelectedMetodo('CARTAO_CREDITO')}
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Crédito</Text>
@@ -272,19 +214,13 @@ export default function PaymentScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* BOTÃO CONFIRMAR */}
             <TouchableOpacity
-              style={[
-                styles.confirmButton,
-                aguardandoPagamento && styles.confirmButtonDisabled,
-              ]}
+              style={[styles.confirmButton, aguardandoPagamento && styles.confirmButtonDisabled]}
               onPress={handleConfirmPayment}
               disabled={aguardandoPagamento}
             >
               <Text style={styles.confirmText}>
-                {aguardandoPagamento
-                  ? "Aguardando pagamento..."
-                  : "Confirmar Pagamento"}
+                {aguardandoPagamento ? "Processando..." : "Confirmar Pagamento"}
               </Text>
             </TouchableOpacity>
 
@@ -297,57 +233,16 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.safe,
-  },
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 24,
-    justifyContent: "center",
-    gap: 16,
-  },
-  infoBox: {
-    backgroundColor: "rgba(0,0,0,0.4)",
-    borderRadius: 12,
-    padding: 16,
-  },
-  label: {
-    color: "#aaa",
-    fontSize: 12,
-    marginBottom: 4,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  value: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  totalContainer: {
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  totalLabel: {
-    color: "#aaa",
-    fontSize: 14,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  totalValue: {
-    color: "#fff",
-    fontSize: 36,
-    fontWeight: "700",
-    marginTop: 4,
-  },
-  methodsContainer: {
-    gap: 10,
-  },
+  safe: { flex: 1, backgroundColor: Colors.safe },
+  container: { flex: 1 },
+  content: { flex: 1, paddingHorizontal: 24, justifyContent: "center", gap: 16 },
+  infoBox: { backgroundColor: "rgba(0,0,0,0.4)", borderRadius: 12, padding: 16 },
+  label: { color: "#aaa", fontSize: 12, textTransform: "uppercase", letterSpacing: 1 },
+  value: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  totalContainer: { alignItems: "center", marginVertical: 8 },
+  totalLabel: { color: "#aaa", fontSize: 14, textTransform: "uppercase" },
+  totalValue: { color: "#fff", fontSize: 36, fontWeight: "700" },
+  methodsContainer: { gap: 10 },
   methodButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -357,38 +252,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
   },
-  selected: {
-    borderColor: Colors.white ?? "#fff",
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  methodIcon: {
-    fontSize: 22,
-    marginRight: 14,
-  },
-  methodText: {
-    color: "#fff",
-    fontSize: 16,
-    flex: 1,
-    fontWeight: "500",
-  },
-  methodArrow: {
-    color: "#aaa",
-    fontSize: 22,
-  },
-  confirmButton: {
-    backgroundColor: Colors.white ?? "#fff",
-    borderRadius: 12,
-    padding: 18,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  confirmText: {
-    color: "#000",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
+  selected: { borderColor: "#fff", backgroundColor: "rgba(255,255,255,0.15)" },
+  methodIcon: { fontSize: 22, marginRight: 14 },
+  methodText: { color: "#fff", fontSize: 16, flex: 1, fontWeight: "500" },
+  methodArrow: { color: "#aaa", fontSize: 22 },
+  confirmButton: { backgroundColor: "#fff", borderRadius: 12, padding: 18, alignItems: "center", marginTop: 8 },
+  confirmButtonDisabled: { opacity: 0.5 },
+  confirmText: { color: "#000", fontSize: 16, fontWeight: "700" },
 });
