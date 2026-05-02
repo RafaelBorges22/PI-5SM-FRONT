@@ -1,4 +1,4 @@
-import { apiRequest } from "./api2";
+import { httpClient } from "./HttpClient";
 
 export interface LoginPayload {
   userName: string;
@@ -11,9 +11,5 @@ export interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
-  return apiRequest<LoginResponse>("/auth/login", {
-    method: "POST",
-    body: payload,
-    auth: false, // login não precisa de token
-  });
+  return httpClient.post<LoginResponse>("/auth/login", payload, undefined, false);
 }
