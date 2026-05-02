@@ -1,11 +1,15 @@
 // service/HttpClient.ts
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from './Api';
+
+const TOKEN_KEY = '@app:token';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   headers?: Record<string, string>;
+  auth?: boolean; // false para rotas públicas como /auth/login
 }
 
 export class ApiError extends Error {
@@ -20,12 +24,19 @@ export class ApiError extends Error {
 }
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, headers = {} } = options;
+  const { method = 'GET', body, headers = {}, auth = true } = options;
+
+  const authHeader: Record<string, string> = {};
+  if (auth) {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    if (token) authHeader['Authorization'] = token;
+  }
 
   const config: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
       ...headers,
     },
   };
@@ -63,18 +74,18 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 }
 
 export const httpClient = {
-  get: <T>(endpoint: string, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'GET', headers }),
+  get: <T>(endpoint: string, headers?: Record<string, string>, auth?: boolean) =>
+    request<T>(endpoint, { method: 'GET', headers, auth }),
 
-  post: <T>(endpoint: string, body: unknown, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'POST', body, headers }),
+  post: <T>(endpoint: string, body: unknown, headers?: Record<string, string>, auth?: boolean) =>
+    request<T>(endpoint, { method: 'POST', body, headers, auth }),
 
-  put: <T>(endpoint: string, body: unknown, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'PUT', body, headers }),
+  put: <T>(endpoint: string, body: unknown, headers?: Record<string, string>, auth?: boolean) =>
+    request<T>(endpoint, { method: 'PUT', body, headers, auth }),
 
-  patch: <T>(endpoint: string, body: unknown, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'PATCH', body, headers }),
+  patch: <T>(endpoint: string, body: unknown, headers?: Record<string, string>, auth?: boolean) =>
+    request<T>(endpoint, { method: 'PATCH', body, headers, auth }),
 
-  delete: <T>(endpoint: string, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'DELETE', headers }),
+  delete: <T>(endpoint: string, headers?: Record<string, string>, auth?: boolean) =>
+    request<T>(endpoint, { method: 'DELETE', headers, auth }),
 };

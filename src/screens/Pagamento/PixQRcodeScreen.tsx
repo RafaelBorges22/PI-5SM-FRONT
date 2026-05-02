@@ -1,5 +1,3 @@
-// components/PixQrCodeScreen.tsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -10,7 +8,9 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Animated,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { ServicoResponse } from '../../types/Servico';
 import { Colors } from '../../assets/constants/Colors';
 
@@ -20,11 +20,22 @@ interface Props {
   onTimeout?: () => void;
 }
 
-const TIMEOUT_SEGUNDOS = 180; // 3 minutos
+const TIMEOUT_SEGUNDOS = 180;
 
 export default function PixQrCodeScreen({ servico, onVoltar, onTimeout }: Props) {
   const [segundosRestantes, setSegundosRestantes] = useState(TIMEOUT_SEGUNDOS);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const navigation = useNavigation<any>();
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(opacityAnim, {
+      toValue: 1,
+      duration: 700,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -66,11 +77,9 @@ export default function PixQrCodeScreen({ servico, onVoltar, onTimeout }: Props)
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
 
-          {/* VALOR */}
           <Text style={styles.valorLabel}>Total a pagar</Text>
           <Text style={styles.valorTexto}>{valorFormatado}</Text>
 
-          {/* QR CODE */}
           <View style={styles.qrArea}>
             {servico.pixImagemQrCode ? (
               <View style={styles.qrWrapper}>
@@ -94,11 +103,17 @@ export default function PixQrCodeScreen({ servico, onVoltar, onTimeout }: Props)
             )}
           </View>
 
-          {/* TIMER */}
+          <View style={styles.avisoContainer}>
+            <Text style={styles.avisoTexto}>
+              Após o pagamento, por favor apresentar o comprovante a um de nossos barbeiros.
+            </Text>
+          </View>
+
           <View style={styles.timerContainer}>
             <Text style={[styles.timerValor, { color: corTimer }]}>
               {tempoFormatado}
             </Text>
+
             <View style={styles.timerBarBg}>
               <View
                 style={[
@@ -110,13 +125,28 @@ export default function PixQrCodeScreen({ servico, onVoltar, onTimeout }: Props)
                 ]}
               />
             </View>
+
             <Text style={styles.timerSub}>QR Code expira em</Text>
           </View>
 
-          {/* VOLTAR */}
+          <Animated.View style={[styles.botaoWrapper, { opacity: opacityAnim }]}>
+            <TouchableOpacity
+              style={styles.botao}
+              activeOpacity={0.85}
+              onPress={() =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                })
+              }
+            >
+              <Text style={styles.botaoTexto}>Voltar ao início</Text>
+            </TouchableOpacity>
+          </Animated.View>
+
           {onVoltar ? (
             <TouchableOpacity style={styles.botaoVoltar} onPress={onVoltar}>
-              <Text style={styles.botaoVoltarTexto}>← Voltar</Text>
+              <Text style={styles.botaoVoltarTexto}>← Voltar a tela de pagamentos</Text>
             </TouchableOpacity>
           ) : null}
 
@@ -139,7 +169,6 @@ const styles = StyleSheet.create({
     padding: 32,
   },
 
-  // VALOR
   valorLabel: {
     color: '#666',
     fontSize: 13,
@@ -154,10 +183,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // QR CODE
   qrArea: {
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: 24,
   },
   qrWrapper: {
     position: 'relative',
@@ -187,7 +215,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
-  // Cantos dourados
+  avisoContainer: {
+    backgroundColor: 'rgba(212,160,23,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(212,160,23,0.25)',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginBottom: 28,
+    width: '90%',
+  },
+  avisoTexto: {
+    color: '#C9A227',
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+
   canto: {
     position: 'absolute',
     width: 20,
@@ -223,7 +268,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
 
-  // TIMER
   timerContainer: {
     alignItems: 'center',
     width: '100%',
@@ -251,9 +295,29 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // VOLTAR
+  botaoWrapper: {
+    width: '100%',
+    marginTop: 30,
+    alignItems: 'center',
+  },
+  botao: {
+    width: '85%',
+    backgroundColor: Colors.gold,
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+  },
+  botaoTexto: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+
   botaoVoltar: {
-    marginTop: 40,
+    marginTop: 20,
     padding: 12,
   },
   botaoVoltarTexto: {
