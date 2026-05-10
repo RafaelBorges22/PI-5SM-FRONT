@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Item, CartEntry, Category } from '../types';
+import { Item, CartEntry, Category } from '../Types';
 import { ItemCard } from './ItemCard';
 
 interface ItemsGridProps {
@@ -50,7 +50,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(212,160,23,0.2)',
   },
-  scrollContent: { padding: 14, gap: 16 },
+
+  scrollContent: {
+    padding: 14,
+    gap: 16,
+  },
+
   sectionLabel: {
     color: '#fff',
     fontSize: 15,
@@ -58,12 +63,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     letterSpacing: 0.5,
   },
+
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
+    rowGap: 10,
   },
+
   cardWrapper: {
-    width: '30.5%',
+    width: '48%',
   },
 });

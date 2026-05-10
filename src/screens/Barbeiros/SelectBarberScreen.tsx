@@ -17,10 +17,10 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const BARBERS = [
-  { name: "Ninguem", photo: require("../../assets/img/Barbeiro.jpg") },
-  { name: "Fulano", photo: require("../../assets/img/Barbeiro.jpg") },
-  { name: "Bruno", photo: require("../../assets/img/Barbeiro.jpg") },
-  { name: "Leonardo", photo: require("../../assets/img/Barbeiro.jpg") },
+  { name: "Ninguem", photo: require("../../assets/img/Berbeiro3.jpeg") },
+  { name: "Fulano", photo: require("../../assets/img/Barbeiro4.jpg") },
+  { name: "Deltrano", photo: require("../../assets/img/Barbeiro5.jpeg") },
+  { name: "Dono", photo: require("../../assets/img/Barbeiro6.jpeg") }
 ];
 
 type RootStackParamList = {
