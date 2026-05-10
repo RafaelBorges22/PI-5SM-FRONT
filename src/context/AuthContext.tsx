@@ -23,11 +23,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Restaura o token salvo quando o app abre
-  useEffect(() => {
-    AsyncStorage.getItem(TOKEN_KEY)
-      .then((stored) => setToken(stored))
-      .finally(() => setIsLoading(false));
-  }, []);
+useEffect(() => {
+  const clearToken = async () => {
+    await AsyncStorage.removeItem(TOKEN_KEY);
+
+    setToken(null);
+    setIsLoading(false);
+  };
+
+  clearToken();
+}, []);
 
   const signIn = useCallback(async (newToken: string) => {
     await AsyncStorage.setItem(TOKEN_KEY, newToken);
