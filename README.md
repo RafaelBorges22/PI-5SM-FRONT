@@ -57,9 +57,10 @@ cd PI-5SM-FRONT
 # Instale as dependências
 npm install
 ```
-## 🔧 Variaveis de ambiente .env
+## 🔧 Variaveis de ambiente .env e app.json
 ```
-EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:8080/api
+.env: EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:8080/api
+app.json: "apiUrl": "http://192.168.1.114:8080",
 ```
 ---
 ## 🏁 Iniciando o projeto
