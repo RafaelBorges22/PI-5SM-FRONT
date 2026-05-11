@@ -60,7 +60,7 @@ npm install
 ## 🔧 Variaveis de ambiente .env e app.json
 ```
 .env: EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:8080/api
-app.json: "apiUrl": "http://192.168.1.114:8080",
+app.json: "apiUrl": "http://SEU_IP_LOCAL:8080"
 ```
 ---
 ## 🏁 Iniciando o projeto
