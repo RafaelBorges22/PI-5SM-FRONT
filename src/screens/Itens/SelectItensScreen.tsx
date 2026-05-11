@@ -1,33 +1,33 @@
 import React, { useState } from 'react';
 import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
+    ImageBackground,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 
 import {
-  useNavigation,
-  useRoute,
-  RouteProp,
+    RouteProp,
+    useNavigation,
+    useRoute,
 } from '@react-navigation/native';
 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Colors } from '../../assets/constants/Colors';
+import { BackButton } from '../../components/BtnVoltar';
 import { CornerAccent } from '../../components/CornerAccent';
-import { CancelButton } from '../../components/BtnCancelar';
 
-import { Category, CartEntry, Item } from './Types';
 import { CATEGORIES, SECTIONS } from './Data';
+import { CartEntry, Category, Item } from './Types';
 
+import { CartModal } from './components/CartModal';
 import { CategoryTab } from './components/CategoryTab';
+import { CheckoutBar } from './components/CheckoutBar';
 import { ItemsGrid } from './components/ItemsGrid';
 import { SelectItemsTitle } from './components/SelectItemsTitle';
-import { CheckoutBar } from './components/CheckoutBar';
-import { CartModal } from './components/CartModal';
 
 
 // ✅ TIPAGEM CORRIGIDA DO FLOW
@@ -133,7 +133,7 @@ export default function SelectItemsScreen() {
 
             {/* Topo */}
             <View style={styles.topRow}>
-              <CancelButton onPress={() => navigation.goBack()} />
+              <BackButton onPress={() => navigation.goBack()} />
 
               <View style={styles.logoMark}>
                 <Text style={styles.logoIcon}>⬆</Text>

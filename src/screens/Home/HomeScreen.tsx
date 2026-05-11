@@ -1,18 +1,18 @@
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from "react";
 import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
+    ImageBackground,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    View,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
 import { CornerAccent } from "../../components/CornerAccent";
 import { Logo } from "./components/Logo";
 import { StartButton } from "./components/StartButton";
 import { WelcomeText } from "./components/TextPrincipal";
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type RootStackParamList = {
   Home: undefined;

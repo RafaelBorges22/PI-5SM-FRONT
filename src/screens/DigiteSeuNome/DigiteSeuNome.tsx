@@ -1,23 +1,22 @@
-import React, { useState, useRef } from "react";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useRef, useState } from "react";
 import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
+    Animated,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
+import { BackButton } from "../../components/BtnVoltar";
 import { CornerAccent } from "../../components/CornerAccent";
-import { CancelButton } from "../../components/BtnCancelar";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRoute, RouteProp } from "@react-navigation/native";
 
 type RootStackParamList = {
   EnterName: {
@@ -109,7 +108,7 @@ const handleConfirm = () => {
             <View style={styles.content}>
               {/* Header with cancel */}
               <View style={styles.header}>
-                  <CancelButton onPress={() => navigation.goBack()} />
+                  <BackButton onPress={() => navigation.goBack()} />
               </View>
 
               {/* Main form area */}

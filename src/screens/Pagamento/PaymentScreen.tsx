@@ -1,30 +1,30 @@
-import React, { useState, useRef } from "react";
-import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ActivityIndicator,
-} from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { faPix } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    ImageBackground,
+    Modal,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { Colors } from "../../assets/constants/Colors";
+import { BackButton } from "../../components/BtnVoltar";
 import { CornerAccent } from "../../components/CornerAccent";
-import { CancelButton } from "../../components/BtnCancelar";
+import { MetodoPagamento } from "../../enum/PaymentMethod";
+import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
 import { payWithCredit } from "../../service/CreditService";
 import { payWithDebit } from "../../service/DebitService";
-import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
-import { InfinitePayResult } from "../../utils/parseInfinitePayResult";
 import { servicoService } from "../../service/ServicoService";
 import { ServicoResponse } from "../../types/Servico";
-import { MetodoPagamento } from "../../enum/PaymentMethod";
+import { InfinitePayResult } from "../../utils/parseInfinitePayResult";
 import PixQrCodeScreen from "../Pagamento/PixQRcodeScreen";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faPix } from "@fortawesome/free-brands-svg-icons";
 
 const PIX_CHAVE = "31b007ea-f1f0-48be-a72d-67ed74ddd8d2";
 
@@ -322,7 +322,7 @@ export default function PaymentScreen() {
               )}
             </TouchableOpacity>
 
-            <CancelButton onPress={() => navigation.goBack()} />
+            <BackButton onPress={() => navigation.goBack()} />
           </View>
         </ImageBackground>
       </SafeAreaView>

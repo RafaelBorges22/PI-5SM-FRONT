@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CancelButton } from '../../../components/BtnCancelar';
+import { StyleSheet, Text, View } from 'react-native';
+import { BackButton } from '../../../components/BtnVoltar';
 
 export function PaymentHeader({ onBack }: { onBack: () => void }) {
   return (
     <View style={styles.topRow}>
-      <CancelButton onPress={onBack} />
+      <BackButton onPress={onBack} />
 
       <View style={styles.logoMark}>
         <Text style={styles.logoIcon}>⬆</Text>

@@ -37,7 +37,7 @@
       "expo-secure-store"
     ],
     "extra": {
-      "apiUrl": "http://192.168.15.29:8080",
+      "apiUrl": "http://192.168.1.111:8080",
       "eas": {
         "projectId": "5cabe7b2-c504-47d8-9547-c4c723782856"
       }

@@ -1,25 +1,25 @@
-import React, { useState, useRef } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useRef, useState } from "react";
 import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  ActivityIndicator,
-  Alert,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
 import { CornerAccent } from "../../components/CornerAccent";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { loginUser } from "../../service/AuthService";
 import { useAuth } from "../../context/AuthContext";
+import { loginUser } from "../../service/AuthService";
 
 type RootStackParamList = {
   Login: undefined;

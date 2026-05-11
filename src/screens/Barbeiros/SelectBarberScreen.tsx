@@ -1,20 +1,20 @@
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from "react";
 import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  ScrollView,
-  Alert,
+    Alert,
+    ImageBackground,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    View,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
+import { BackButton } from "../../components/BtnVoltar";
 import { CornerAccent } from "../../components/CornerAccent";
 import { BarberCard } from "./components/BarberCard";
 import { SelectBarberTitle } from "./components/SelectBarberTitle";
-import { CancelButton } from "../../components/BtnCancelar";
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const BARBERS = [
   { name: "Ninguem", photo: require("../../assets/img/Berbeiro3.jpeg") },
@@ -98,7 +98,7 @@ export default function SelectBarberScreen() {
               })}
             </ScrollView>
 
-            <CancelButton onPress={() => navigation.goBack()} />
+            <BackButton onPress={() => navigation.goBack()} />
           </View>
         </ImageBackground>
       </SafeAreaView>
