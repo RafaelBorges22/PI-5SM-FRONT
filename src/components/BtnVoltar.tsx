@@ -1,31 +1,48 @@
-import React, { useRef } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { Colors } from '../assets/constants/Colors';
+import React, { useRef } from "react";
+import { Animated, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Colors } from "../assets/constants/Colors";
 
 interface BackButtonProps {
   onPress: () => void;
+  compact?: boolean;
 }
 
-export function BackButton({ onPress }: BackButtonProps) {
+export function BackButton({ onPress, compact = false }: BackButtonProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const pressIn = () =>
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50 }).start();
+    Animated.spring(scale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 50,
+    }).start();
 
   const pressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
 
   return (
-    <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}> 
+    <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}>
       <TouchableOpacity
-        style={styles.button}
+        style={[
+          styles.button,
+          compact && {
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            borderRadius: 10,
+          },
+        ]}
         onPress={onPress}
         onPressIn={pressIn}
         onPressOut={pressOut}
         activeOpacity={0.85}
       >
-        <Text style={styles.arrow}>← </Text>
-        <Text style={styles.label}>Voltar</Text>
+        <Text style={[styles.arrow, compact && { fontSize: 14 }]}>← </Text>
+        <Text style={[styles.label, compact && { fontSize: 14 }]}>Voltar</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -33,32 +50,32 @@ export function BackButton({ onPress }: BackButtonProps) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
+    alignSelf: "flex-start",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
   },
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2a2a2a',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2a2a2a",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderWidth: 1,
-    borderColor: '#3a3a3a',
+    borderColor: "#3a3a3a",
   },
   arrow: {
     color: Colors.white,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   label: {
     color: Colors.white,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
 });

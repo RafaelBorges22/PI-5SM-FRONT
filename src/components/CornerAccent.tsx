@@ -1,40 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Keyboard, KeyboardEvent, Platform, StyleSheet, View } from 'react-native';
-import { Colors } from '../assets/constants/Colors';
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Colors } from "../assets/constants/Colors";
 
-type Position = 'topRight' | 'bottomLeft';
+type Position = "topRight" | "bottomLeft";
 
 interface CornerAccentProps {
   position: Position;
 }
 
 export function CornerAccent({ position }: CornerAccentProps) {
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const isTopRight = position === 'topRight';
-
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const onShow = (event: KeyboardEvent) => setKeyboardHeight(event.endCoordinates.height);
-    const onHide = () => setKeyboardHeight(0);
-
-    const showSub = Keyboard.addListener(showEvent, onShow);
-    const hideSub = Keyboard.addListener(hideEvent, onHide);
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+  const isTopRight = position === "topRight";
 
   return (
     <View
-      style={[
-        styles.base,
-        isTopRight ? styles.topRight : styles.bottomLeft,
-        !isTopRight && { bottom: keyboardHeight },
-      ]}
+      style={[styles.base, isTopRight ? styles.topRight : styles.bottomLeft]}
       pointerEvents="none"
     />
   );
@@ -42,7 +21,7 @@ export function CornerAccent({ position }: CornerAccentProps) {
 
 const styles = StyleSheet.create({
   base: {
-    position: 'absolute',
+    position: "absolute",
     width: 64,
     height: 64,
     backgroundColor: Colors.gold,

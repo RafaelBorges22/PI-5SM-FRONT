@@ -1,18 +1,17 @@
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React from "react";
 import {
-    ImageBackground,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    View,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
-import { CornerAccent } from "../../components/CornerAccent";
-import { Logo } from "./components/Logo";
-import { StartButton } from "./components/StartButton";
-import { WelcomeText } from "./components/TextPrincipal";
+import styles from "./Styles";
 
 type RootStackParamList = {
   Home: undefined;
@@ -20,9 +19,10 @@ type RootStackParamList = {
 };
 
 export default function WelcomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-return (
+  return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
       <SafeAreaView style={styles.safe}>
@@ -31,35 +31,28 @@ return (
           style={styles.container}
           resizeMode="cover"
         >
-          <CornerAccent position="topRight" />
-          <CornerAccent position="bottomLeft" />
           <View style={styles.content}>
-            <Logo />
-            <WelcomeText />
-            <StartButton
-                onPress={() => navigation.navigate('SelectBarber')}
-            />          
+            <Image
+              source={require("../../assets/img/Logo.png")}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+
+            <Text style={styles.wordmark}>BARBER</Text>
+
+            <Text style={styles.welcomeText}>Seja bem-vindo!</Text>
+
+            <TouchableOpacity
+              style={styles.startWrapper}
+              activeOpacity={0.9}
+              onPress={() => navigation.navigate("SelectBarber")}
+            >
+              <View style={styles.startHighlight} />
+              <Text style={styles.startLabel}>INICIAR ATENDIMENTO</Text>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
       </SafeAreaView>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.safe,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 40,
-    gap: 32,
-  },
-});

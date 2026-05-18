@@ -23,4 +23,5 @@ export const Colors = {
 
   border: '#3a3a3a',
   transparent: 'transparent',
+  safe: '#1c1c1c',
 };

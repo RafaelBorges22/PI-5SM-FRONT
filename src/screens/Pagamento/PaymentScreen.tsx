@@ -16,7 +16,6 @@ import {
 } from "react-native";
 import { Colors } from "../../assets/constants/Colors";
 import { BackButton } from "../../components/BtnVoltar";
-import { CornerAccent } from "../../components/CornerAccent";
 import { MetodoPagamento } from "../../enum/PaymentMethod";
 import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
 import { payWithCredit } from "../../service/CreditService";
@@ -59,12 +58,15 @@ const modalInicial: ModalConfig = {
 
 export default function PaymentScreen() {
   const route = useRoute();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { nomeBarbeiro, valor, servico, produto, nomeCliente } =
     route.params as RootStackParamList["Payment"];
 
-  const [selectedMetodo, setSelectedMetodo] = useState<MetodoPagamento | null>(null);
+  const [selectedMetodo, setSelectedMetodo] = useState<MetodoPagamento | null>(
+    null,
+  );
   const [aguardandoPagamento, setAguardandoPagamento] = useState(false);
   const [servicoPix, setServicoPix] = useState<ServicoResponse | null>(null);
   const [modal, setModal] = useState<ModalConfig>(modalInicial);
@@ -120,7 +122,7 @@ export default function PaymentScreen() {
         titulo: "Cancelado",
         mensagem: "Pagamento não concluído.",
       });
-    }
+    },
   );
 
   // ─── Seleção de método ────────────────────────────────────────────────────────
@@ -161,9 +163,7 @@ export default function PaymentScreen() {
         });
         setServicoPix(response);
         setAguardandoPagamento(false);
-      }
-
-      else if (selectedMetodo === MetodoPagamento.DINHEIRO) {
+      } else if (selectedMetodo === MetodoPagamento.DINHEIRO) {
         await servicoService.criarSimples({
           valor,
           nomeCliente,
@@ -175,18 +175,13 @@ export default function PaymentScreen() {
         });
         setAguardandoPagamento(false);
         navigation.navigate("PaymentSuccess");
-      }
-
-      else if (selectedMetodo === MetodoPagamento.CARTAO_CREDITO) {
+      } else if (selectedMetodo === MetodoPagamento.CARTAO_CREDITO) {
         selectedMetodoRef.current = MetodoPagamento.CARTAO_CREDITO;
         await payWithCredit(valorEmCentavos, orderId, 1);
-      }
-
-      else if (selectedMetodo === MetodoPagamento.CARTAO_DEBITO) {
+      } else if (selectedMetodo === MetodoPagamento.CARTAO_DEBITO) {
         selectedMetodoRef.current = MetodoPagamento.CARTAO_DEBITO;
         await payWithDebit(valorEmCentavos, orderId);
       }
-
     } catch (error) {
       setAguardandoPagamento(false);
       const mensagem =
@@ -202,10 +197,14 @@ export default function PaymentScreen() {
   // ─── Ícone por tipo ───────────────────────────────────────────────────────────
   const iconeModal = (tipo: ModalConfig["tipo"]) => {
     switch (tipo) {
-      case "erro":     return { simbolo: "✕", cor: "#c0392b" };
-      case "aviso":    return { simbolo: "!", cor: Colors.gold };
-      case "cancelado":return { simbolo: "✕", cor: Colors.gold };
-      case "processando": return { simbolo: "...", cor: Colors.gold };
+      case "erro":
+        return { simbolo: "✕", cor: "#c0392b" };
+      case "aviso":
+        return { simbolo: "!", cor: Colors.gold };
+      case "cancelado":
+        return { simbolo: "✕", cor: Colors.gold };
+      case "processando":
+        return { simbolo: "...", cor: Colors.gold };
     }
   };
 
@@ -234,9 +233,6 @@ export default function PaymentScreen() {
           style={styles.container}
           resizeMode="cover"
         >
-          <CornerAccent position="topRight" />
-          <CornerAccent position="bottomLeft" />
-
           <View style={styles.content}>
             <View style={styles.infoBox}>
               <Text style={styles.label}>Barbeiro</Text>
@@ -271,7 +267,8 @@ export default function PaymentScreen() {
               <TouchableOpacity
                 style={[
                   styles.methodButton,
-                  selectedMetodo === MetodoPagamento.DINHEIRO && styles.selected,
+                  selectedMetodo === MetodoPagamento.DINHEIRO &&
+                    styles.selected,
                 ]}
                 onPress={() => handleSelectMetodo(MetodoPagamento.DINHEIRO)}
               >
@@ -284,9 +281,12 @@ export default function PaymentScreen() {
               <TouchableOpacity
                 style={[
                   styles.methodButton,
-                  selectedMetodo === MetodoPagamento.CARTAO_DEBITO && styles.selected,
+                  selectedMetodo === MetodoPagamento.CARTAO_DEBITO &&
+                    styles.selected,
                 ]}
-                onPress={() => handleSelectMetodo(MetodoPagamento.CARTAO_DEBITO)}
+                onPress={() =>
+                  handleSelectMetodo(MetodoPagamento.CARTAO_DEBITO)
+                }
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Débito</Text>
@@ -297,9 +297,12 @@ export default function PaymentScreen() {
               <TouchableOpacity
                 style={[
                   styles.methodButton,
-                  selectedMetodo === MetodoPagamento.CARTAO_CREDITO && styles.selected,
+                  selectedMetodo === MetodoPagamento.CARTAO_CREDITO &&
+                    styles.selected,
                 ]}
-                onPress={() => handleSelectMetodo(MetodoPagamento.CARTAO_CREDITO)}
+                onPress={() =>
+                  handleSelectMetodo(MetodoPagamento.CARTAO_CREDITO)
+                }
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Crédito</Text>
