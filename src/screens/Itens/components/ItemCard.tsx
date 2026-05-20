@@ -7,7 +7,7 @@ import {
     View,
 } from "react-native";
 import { Colors } from "../../../assets/constants/Colors";
-import { Item } from "../types";
+import { Item } from "../Types";
 
 interface ItemCardProps {
   item: Item;

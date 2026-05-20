@@ -113,14 +113,14 @@ const styles = StyleSheet.create({
   },
   finishWrapper: {
     flex: 1,
-    shadowColor: Colors.success,
+    shadowColor: Colors.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 8,
   },
   finishBtn: {
-    backgroundColor: Colors.success,
+    backgroundColor: Colors.gold,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
