@@ -1,27 +1,35 @@
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useRef, useEffect } from 'react';
-import { Linking } from 'react-native';
+import {
+  NavigationContainer,
+  NavigationContainerRef,
+} from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard, Linking, Platform } from "react-native";
 
-import WelcomeScreen from './src/screens/Home/HomeScreen';
-import SelectBarberScreen from './src/screens/Barbeiros/SelectBarberScreen';
-import SelectItemsScreen from './src/screens/Itens/SelectItensScreen';
-import DigiteSeuNome from './src/screens/DigiteSeuNome/DigiteSeuNome';
-import PaymentScreen from './src/screens/Pagamento/PaymentScreen';
-import PaymentSuccessScreen from './src/screens/Pagamento/PaymentSuccessScreen';
-import LoginScreen from './src/screens/Auth/LoginScreen';
+import { CornerAccent } from "./src/components/CornerAccent";
+import LoginScreen from "./src/screens/Auth/LoginScreen";
+import SelectBarberScreen from "./src/screens/Barbeiros/SelectBarberScreen";
+import DigiteSeuNome from "./src/screens/DigiteSeuNome/DigiteSeuNome";
+import WelcomeScreen from "./src/screens/Home/HomeScreen";
+import SelectItemsScreen from "./src/screens/Itens/SelectItensScreen";
+import PaymentScreen from "./src/screens/Pagamento/PaymentScreen";
+import PaymentSuccessScreen from "./src/screens/Pagamento/PaymentSuccessScreen";
 
-import { parseInfinitePayResult } from './src/utils/parseInfinitePayResult';
-import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import { parseInfinitePayResult } from "./src/utils/parseInfinitePayResult";
 
 const Stack = createNativeStackNavigator();
 
-function AppRoutes() {
+function AppRoutes({
+  onRouteChange,
+}: {
+  onRouteChange?: (routeName?: string) => void;
+}) {
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
   const { token, isLoading } = useAuth();
 
   useEffect(() => {
-    const subscription = Linking.addEventListener('url', (event) => {
+    const subscription = Linking.addEventListener("url", (event) => {
       handleDeepLink(event.url);
     });
 
@@ -33,12 +41,12 @@ function AppRoutes() {
   }, []);
 
   const handleDeepLink = (url: string) => {
-    if (!url.includes('tap_result')) return;
+    if (!url.includes("tap_result")) return;
 
     const result = parseInfinitePayResult(url);
 
     if (result?.nsu) {
-      navigationRef.current?.navigate('PaymentSuccess' as never);
+      navigationRef.current?.navigate("PaymentSuccess" as never);
     }
   };
 
@@ -46,7 +54,12 @@ function AppRoutes() {
   if (isLoading) return null;
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer
+      ref={navigationRef}
+      onStateChange={() =>
+        onRouteChange?.(navigationRef.current?.getCurrentRoute()?.name)
+      }
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!token ? (
           <>
@@ -72,9 +85,39 @@ function AppRoutes() {
 }
 
 export default function App() {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState<string | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const onShow = () => setKeyboardVisible(true);
+    const onHide = () => setKeyboardVisible(false);
+
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
   return (
     <AuthProvider>
-      <AppRoutes />
+      <AppRoutes onRouteChange={setCurrentRoute} />
+
+      {/* Global corners so they are not affected by per-screen keyboard resizing */}
+      {!keyboardVisible && currentRoute !== "SelectItems" && (
+        <>
+          <CornerAccent position="topRight" />
+          <CornerAccent position="bottomLeft" />
+        </>
+      )}
     </AuthProvider>
   );
 }

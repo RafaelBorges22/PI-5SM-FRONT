@@ -1,25 +1,27 @@
-import React, { useState, useRef } from "react";
-import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import { Colors } from "../../assets/constants/Colors";
-import { CornerAccent } from "../../components/CornerAccent";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { loginUser } from "../../service/AuthService";
+import React, { useEffect, useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Animated,
+    AppState,
+    AppStateStatus,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { Colors } from "../../assets/constants/Colors";
 import { useAuth } from "../../context/AuthContext";
+import { loginUser } from "../../service/AuthService";
+import styles from "./Styles";
 
 type RootStackParamList = {
   Login: undefined;
@@ -34,6 +36,28 @@ export default function LoginScreen() {
   const [userName, setUserName] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const userInputRef = useRef<TextInput | null>(null);
+  const passInputRef = useRef<TextInput | null>(null);
+  const lastFocusedRef = useRef<"user" | "pass" | null>(null);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextState: AppStateStatus) => {
+        if (nextState === "active" && lastFocusedRef.current) {
+          setTimeout(() => {
+            if (lastFocusedRef.current === "user")
+              userInputRef.current?.focus();
+            if (lastFocusedRef.current === "pass")
+              passInputRef.current?.focus();
+          }, 120);
+        }
+      },
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   const userBorderAnim = useRef(new Animated.Value(0)).current;
   const passBorderAnim = useRef(new Animated.Value(0)).current;
@@ -84,12 +108,9 @@ export default function LoginScreen() {
           style={styles.container}
           resizeMode="cover"
         >
-          <CornerAccent position="topRight" />
-          <CornerAccent position="bottomLeft" />
-
           <KeyboardAvoidingView
             style={styles.keyboardAvoiding}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
             <View style={styles.content}>
               <View style={styles.formArea}>
@@ -100,18 +121,30 @@ export default function LoginScreen() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.label}>Usuário</Text>
                   <Animated.View
-                    style={[styles.inputWrapper, { borderColor: userBorderColor }]}
+                    style={[
+                      styles.inputWrapper,
+                      { borderColor: userBorderColor },
+                    ]}
                   >
                     <TextInput
+                      ref={userInputRef}
                       style={styles.input}
                       value={userName}
                       onChangeText={setUserName}
-                      onFocus={() => animateBorder(userBorderAnim, true)}
-                      onBlur={() => animateBorder(userBorderAnim, false)}
+                      onFocus={() => {
+                        lastFocusedRef.current = "user";
+                        animateBorder(userBorderAnim, true);
+                      }}
+                      onBlur={() => {
+                        lastFocusedRef.current = null;
+                        animateBorder(userBorderAnim, false);
+                      }}
                       autoFocus
                       autoCapitalize="none"
                       autoCorrect={false}
                       returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => passInputRef.current?.focus()}
                       placeholderTextColor="rgba(255,255,255,0.3)"
                       placeholder="Digite seu usuário"
                     />
@@ -122,14 +155,24 @@ export default function LoginScreen() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.label}>Senha</Text>
                   <Animated.View
-                    style={[styles.inputWrapper, { borderColor: passBorderColor }]}
+                    style={[
+                      styles.inputWrapper,
+                      { borderColor: passBorderColor },
+                    ]}
                   >
                     <TextInput
+                      ref={passInputRef}
                       style={styles.input}
                       value={senha}
                       onChangeText={setSenha}
-                      onFocus={() => animateBorder(passBorderAnim, true)}
-                      onBlur={() => animateBorder(passBorderAnim, false)}
+                      onFocus={() => {
+                        lastFocusedRef.current = "pass";
+                        animateBorder(passBorderAnim, true);
+                      }}
+                      onBlur={() => {
+                        lastFocusedRef.current = null;
+                        animateBorder(passBorderAnim, false);
+                      }}
                       secureTextEntry
                       returnKeyType="done"
                       onSubmitEditing={handleLogin}
@@ -164,92 +207,3 @@ export default function LoginScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.safe,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  keyboardAvoiding: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 28,
-  },
-  formArea: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: Colors.gold,
-    letterSpacing: 1,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: "400",
-    color: "rgba(255,255,255,0.5)",
-    letterSpacing: 0.3,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  fieldGroup: {
-    width: "100%",
-    gap: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.white,
-    letterSpacing: 0.4,
-    paddingLeft: 4,
-  },
-  inputWrapper: {
-    width: "100%",
-    borderWidth: 2,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    paddingHorizontal: 16,
-    paddingVertical: Platform.OS === "ios" ? 14 : 4,
-  },
-  input: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: Colors.gold,
-    minHeight: 44,
-  },
-  loginButton: {
-    marginTop: 8,
-    backgroundColor: Colors.gold,
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
-    alignItems: "center",
-    width: "100%",
-    shadowColor: Colors.gold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  loginButtonDisabled: {
-    opacity: 0.7,
-  },
-  loginButtonText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.black,
-    letterSpacing: 0.5,
-  },
-});

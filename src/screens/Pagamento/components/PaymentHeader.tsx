@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CancelButton } from '../../../components/BtnCancelar';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Colors } from "../../../assets/constants/Colors";
+import { BackButton } from "../../../components/BtnVoltar";
 
 export function PaymentHeader({ onBack }: { onBack: () => void }) {
   return (
     <View style={styles.topRow}>
-      <CancelButton onPress={onBack} />
+      <BackButton onPress={onBack} />
 
       <View style={styles.logoMark}>
         <Text style={styles.logoIcon}>⬆</Text>
@@ -17,16 +18,16 @@ export function PaymentHeader({ onBack }: { onBack: () => void }) {
 
 const styles = StyleSheet.create({
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  logoMark: { alignItems: 'center' },
-  logoIcon: { color: '#D4A017', fontSize: 20 },
+  logoMark: { alignItems: "center" },
+  logoIcon: { color: "#D4A017", fontSize: 20 },
   logoText: {
-    color: '#D4A017',
+    color: Colors.gold,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 3,
   },
 });

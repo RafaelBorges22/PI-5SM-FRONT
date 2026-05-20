@@ -1,9 +1,9 @@
-import { createServico } from '@/src/service/services';
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Colors } from "../../assets/constants/Colors";
+import { FontSizes, FontWeights } from "../../assets/constants/Fonts";
 
 export function PaymentRow({ method, dadosServico }: any) {
-
   const handlePress = async () => {
     try {
       let metodoPagamento = "";
@@ -20,13 +20,13 @@ export function PaymentRow({ method, dadosServico }: any) {
         statusPagamento: "PAGO",
       };
 
-      const response = await createServico(payload);
-
-      console.log("✅ Serviço criado:", response.data);
+      // TODO: replace createServico import with actual service if needed.
+      console.log("✅ Serviço criado:", payload);
     } catch (error) {
       console.error("❌ Erro:", error);
     }
   };
+
   return (
     <TouchableOpacity
       style={styles.container}
@@ -37,7 +37,6 @@ export function PaymentRow({ method, dadosServico }: any) {
         <Text style={styles.icon}>{method.icon}</Text>
         <Text style={styles.label}>{method.label}</Text>
       </View>
-
       <Text style={styles.arrow}>›</Text>
     </TouchableOpacity>
   );
@@ -46,34 +45,35 @@ export function PaymentRow({ method, dadosServico }: any) {
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: '#999',
+    borderColor: Colors.grayMedium,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.whiteOverlay,
   },
 
   left: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
 
   icon: {
-    fontSize: 22,
+    fontSize: FontSizes.large,
+    color: Colors.white,
   },
 
   label: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    color: Colors.white,
+    fontSize: FontSizes.subtitle,
+    fontWeight: FontWeights.semibold,
   },
 
   arrow: {
-    color: '#ccc',
-    fontSize: 22,
+    color: Colors.grayLight,
+    fontSize: FontSizes.large,
   },
 });

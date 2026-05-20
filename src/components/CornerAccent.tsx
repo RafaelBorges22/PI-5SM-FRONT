@@ -1,30 +1,30 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Colors } from "../assets/constants/Colors";
 
-type Position = 'topRight' | 'bottomLeft';
+type Position = "topRight" | "bottomLeft";
 
 interface CornerAccentProps {
   position: Position;
 }
 
 export function CornerAccent({ position }: CornerAccentProps) {
-  const isTopRight = position === 'topRight';
+  const isTopRight = position === "topRight";
+
   return (
     <View
-      style={[
-        styles.base,
-        isTopRight ? styles.topRight : styles.bottomLeft,
-      ]}
+      style={[styles.base, isTopRight ? styles.topRight : styles.bottomLeft]}
+      pointerEvents="none"
     />
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    position: 'absolute',
+    position: "absolute",
     width: 64,
     height: 64,
-    backgroundColor: '#D4A017',
+    backgroundColor: Colors.gold,
   },
   topRight: {
     top: 0,

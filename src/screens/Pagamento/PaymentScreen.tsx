@@ -1,30 +1,29 @@
-import React, { useState, useRef } from "react";
-import {
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ActivityIndicator,
-} from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { faPix } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    ImageBackground,
+    Modal,
+    StatusBar,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../assets/constants/Colors";
-import { CornerAccent } from "../../components/CornerAccent";
-import { CancelButton } from "../../components/BtnCancelar";
+import { BackButton } from "../../components/BtnVoltar";
+import { MetodoPagamento } from "../../enum/PaymentMethod";
+import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
 import { payWithCredit } from "../../service/CreditService";
 import { payWithDebit } from "../../service/DebitService";
-import { useInfinitePayListener } from "../../hooks/useInfinitePayListener";
-import { InfinitePayResult } from "../../utils/parseInfinitePayResult";
 import { servicoService } from "../../service/ServicoService";
 import { ServicoResponse } from "../../types/Servico";
-import { MetodoPagamento } from "../../enum/PaymentMethod";
-import PixQrCodeScreen from "../Pagamento/PixQRcodeScreen";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faPix } from "@fortawesome/free-brands-svg-icons";
+import { InfinitePayResult } from "../../utils/parseInfinitePayResult";
+import styles from "./PaymentStyles";
+import PixQrCodeScreen from "./PixQRcodeScreen";
 
 const PIX_CHAVE = "31b007ea-f1f0-48be-a72d-67ed74ddd8d2";
 
@@ -40,7 +39,6 @@ type RootStackParamList = {
   };
 };
 
-// ─── Tipos do Modal ───────────────────────────────────────────────────────────
 type ModalConfig = {
   visible: boolean;
   titulo: string;
@@ -59,12 +57,15 @@ const modalInicial: ModalConfig = {
 
 export default function PaymentScreen() {
   const route = useRoute();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { nomeBarbeiro, valor, servico, produto, nomeCliente } =
     route.params as RootStackParamList["Payment"];
 
-  const [selectedMetodo, setSelectedMetodo] = useState<MetodoPagamento | null>(null);
+  const [selectedMetodo, setSelectedMetodo] = useState<MetodoPagamento | null>(
+    null,
+  );
   const [aguardandoPagamento, setAguardandoPagamento] = useState(false);
   const [servicoPix, setServicoPix] = useState<ServicoResponse | null>(null);
   const [modal, setModal] = useState<ModalConfig>(modalInicial);
@@ -74,14 +75,12 @@ export default function PaymentScreen() {
   const orderId = `DSM-${Date.now()}`;
   const valorEmCentavos = Math.round(valor * 100);
 
-  // ─── Helpers do Modal ─────────────────────────────────────────────────────────
   const fecharModal = () => setModal((m) => ({ ...m, visible: false }));
 
   const mostrarModal = (config: Omit<ModalConfig, "visible">) => {
     setModal({ ...config, visible: true });
   };
 
-  // ─── Listener InfinitePay ─────────────────────────────────────────────────────
   useInfinitePayListener(
     async (_result: InfinitePayResult) => {
       const metodo = selectedMetodoRef.current;
@@ -120,16 +119,14 @@ export default function PaymentScreen() {
         titulo: "Cancelado",
         mensagem: "Pagamento não concluído.",
       });
-    }
+    },
   );
 
-  // ─── Seleção de método ────────────────────────────────────────────────────────
   const handleSelectMetodo = (metodo: MetodoPagamento) => {
     setSelectedMetodo(metodo);
     selectedMetodoRef.current = metodo;
   };
 
-  // ─── Confirmação ─────────────────────────────────────────────────────────────
   const handleConfirmPayment = async () => {
     if (!selectedMetodo) {
       mostrarModal({
@@ -161,9 +158,7 @@ export default function PaymentScreen() {
         });
         setServicoPix(response);
         setAguardandoPagamento(false);
-      }
-
-      else if (selectedMetodo === MetodoPagamento.DINHEIRO) {
+      } else if (selectedMetodo === MetodoPagamento.DINHEIRO) {
         await servicoService.criarSimples({
           valor,
           nomeCliente,
@@ -175,18 +170,13 @@ export default function PaymentScreen() {
         });
         setAguardandoPagamento(false);
         navigation.navigate("PaymentSuccess");
-      }
-
-      else if (selectedMetodo === MetodoPagamento.CARTAO_CREDITO) {
+      } else if (selectedMetodo === MetodoPagamento.CARTAO_CREDITO) {
         selectedMetodoRef.current = MetodoPagamento.CARTAO_CREDITO;
         await payWithCredit(valorEmCentavos, orderId, 1);
-      }
-
-      else if (selectedMetodo === MetodoPagamento.CARTAO_DEBITO) {
+      } else if (selectedMetodo === MetodoPagamento.CARTAO_DEBITO) {
         selectedMetodoRef.current = MetodoPagamento.CARTAO_DEBITO;
         await payWithDebit(valorEmCentavos, orderId);
       }
-
     } catch (error) {
       setAguardandoPagamento(false);
       const mensagem =
@@ -199,17 +189,19 @@ export default function PaymentScreen() {
     }
   };
 
-  // ─── Ícone por tipo ───────────────────────────────────────────────────────────
   const iconeModal = (tipo: ModalConfig["tipo"]) => {
     switch (tipo) {
-      case "erro":     return { simbolo: "✕", cor: "#c0392b" };
-      case "aviso":    return { simbolo: "!", cor: Colors.gold };
-      case "cancelado":return { simbolo: "✕", cor: Colors.gold };
-      case "processando": return { simbolo: "...", cor: Colors.gold };
+      case "erro":
+        return { simbolo: "✕", cor: Colors.danger };
+      case "aviso":
+        return { simbolo: "!", cor: Colors.gold };
+      case "cancelado":
+        return { simbolo: "✕", cor: Colors.gold };
+      case "processando":
+        return { simbolo: "...", cor: Colors.gold };
     }
   };
 
-  // ─── Render PIX ───────────────────────────────────────────────────────────────
   if (servicoPix) {
     return (
       <PixQrCodeScreen
@@ -224,7 +216,6 @@ export default function PaymentScreen() {
 
   const icone = iconeModal(modal.tipo);
 
-  // ─── Render principal ─────────────────────────────────────────────────────────
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={Colors.safe} />
@@ -234,9 +225,6 @@ export default function PaymentScreen() {
           style={styles.container}
           resizeMode="cover"
         >
-          <CornerAccent position="topRight" />
-          <CornerAccent position="bottomLeft" />
-
           <View style={styles.content}>
             <View style={styles.infoBox}>
               <Text style={styles.label}>Barbeiro</Text>
@@ -249,7 +237,6 @@ export default function PaymentScreen() {
             </View>
 
             <View style={styles.methodsContainer}>
-              {/* PIX */}
               <TouchableOpacity
                 style={[
                   styles.methodButton,
@@ -260,18 +247,18 @@ export default function PaymentScreen() {
                 <FontAwesomeIcon
                   icon={faPix}
                   size={24}
-                  color="#32BCAD"
+                  color={Colors.success}
                   style={{ marginRight: 14 }}
                 />
                 <Text style={styles.methodText}>PIX</Text>
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
-              {/* DINHEIRO */}
               <TouchableOpacity
                 style={[
                   styles.methodButton,
-                  selectedMetodo === MetodoPagamento.DINHEIRO && styles.selected,
+                  selectedMetodo === MetodoPagamento.DINHEIRO &&
+                    styles.selected,
                 ]}
                 onPress={() => handleSelectMetodo(MetodoPagamento.DINHEIRO)}
               >
@@ -280,26 +267,30 @@ export default function PaymentScreen() {
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
-              {/* DÉBITO */}
               <TouchableOpacity
                 style={[
                   styles.methodButton,
-                  selectedMetodo === MetodoPagamento.CARTAO_DEBITO && styles.selected,
+                  selectedMetodo === MetodoPagamento.CARTAO_DEBITO &&
+                    styles.selected,
                 ]}
-                onPress={() => handleSelectMetodo(MetodoPagamento.CARTAO_DEBITO)}
+                onPress={() =>
+                  handleSelectMetodo(MetodoPagamento.CARTAO_DEBITO)
+                }
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Débito</Text>
                 <Text style={styles.methodArrow}>›</Text>
               </TouchableOpacity>
 
-              {/* CRÉDITO */}
               <TouchableOpacity
                 style={[
                   styles.methodButton,
-                  selectedMetodo === MetodoPagamento.CARTAO_CREDITO && styles.selected,
+                  selectedMetodo === MetodoPagamento.CARTAO_CREDITO &&
+                    styles.selected,
                 ]}
-                onPress={() => handleSelectMetodo(MetodoPagamento.CARTAO_CREDITO)}
+                onPress={() =>
+                  handleSelectMetodo(MetodoPagamento.CARTAO_CREDITO)
+                }
               >
                 <Text style={styles.methodIcon}>💳</Text>
                 <Text style={styles.methodText}>Cartão de Crédito</Text>
@@ -316,18 +307,17 @@ export default function PaymentScreen() {
               disabled={aguardandoPagamento}
             >
               {aguardandoPagamento ? (
-                <ActivityIndicator color="#1a1a1a" />
+                <ActivityIndicator color={Colors.black} />
               ) : (
                 <Text style={styles.confirmText}>Confirmar Pagamento</Text>
               )}
             </TouchableOpacity>
 
-            <CancelButton onPress={() => navigation.goBack()} />
+            <BackButton onPress={() => navigation.goBack()} />
           </View>
         </ImageBackground>
       </SafeAreaView>
 
-      {/* ─── Modal ─────────────────────────────────────────────────────────────── */}
       <Modal
         visible={modal.visible}
         transparent
@@ -336,20 +326,13 @@ export default function PaymentScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            {/* Ícone */}
             <View style={[styles.modalIconCircle, { borderColor: icone.cor }]}>
               <Text style={[styles.modalIconText, { color: icone.cor }]}>
                 {icone.simbolo}
               </Text>
             </View>
-
-            {/* Título */}
             <Text style={styles.modalTitulo}>{modal.titulo}</Text>
-
-            {/* Mensagem */}
             <Text style={styles.modalMensagem}>{modal.mensagem}</Text>
-
-            {/* Botão */}
             <TouchableOpacity
               style={styles.modalBotao}
               onPress={() => {
@@ -365,144 +348,3 @@ export default function PaymentScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.safe,
-  },
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-    justifyContent: "center",
-  },
-  infoBox: {
-    marginBottom: 16,
-  },
-  label: {
-    color: "#aaa",
-    fontSize: 13,
-  },
-  value: {
-    color: Colors.white,
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  totalContainer: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  totalLabel: {
-    color: "#aaa",
-    fontSize: 14,
-  },
-  totalValue: {
-    color: Colors.gold,
-    fontSize: 36,
-    fontWeight: "700",
-  },
-  methodsContainer: {
-    gap: 12,
-    marginBottom: 32,
-  },
-  methodButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2a2a2a",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#3a3a3a",
-  },
-  selected: {
-    borderColor: Colors.gold,
-    backgroundColor: "#2e2a1a",
-  },
-  methodIcon: {
-    fontSize: 22,
-    marginRight: 14,
-  },
-  methodText: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 16,
-  },
-  methodArrow: {
-    color: "#aaa",
-    fontSize: 20,
-  },
-  confirmButton: {
-    backgroundColor: Colors.gold,
-    borderRadius: 12,
-    padding: 18,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  confirmText: {
-    color: Colors.black,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  // ─── Modal ──────────────────────────────────────────────────────────────────
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.75)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-  modalBox: {
-    backgroundColor: "#242424",
-    borderRadius: 16,
-    padding: 28,
-    alignItems: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  modalIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  modalIconText: {
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  modalTitulo: {
-    color: Colors.white,
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  modalMensagem: {
-    color: "#aaa",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  modalBotao: {
-    backgroundColor: Colors.gold,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 48,
-  },
-  modalBotaoTexto: {
-    color: Colors.black,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-});

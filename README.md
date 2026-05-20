@@ -81,4 +81,4 @@ Por conta de estar usando o ExpoGo localmente, os pagamentos via Cartão após s
 ---
 ## 👨‍💻 Autores
 
-Desenvolvido por **Rafael Mascarenhas Borges**.
+Desenvolvido por **Rafael Mascarenhas Borges** e **Guilherme Souza Alves**.
