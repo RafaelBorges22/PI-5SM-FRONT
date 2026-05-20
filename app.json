@@ -34,7 +34,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "extra": {
       "apiUrl": "http://192.168.0.50:8080",

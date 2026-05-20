@@ -1,5 +1,7 @@
-import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import React from "react";
+import { StyleSheet, Text } from "react-native";
+import { Colors } from "../../../assets/constants/Colors";
+import { FontSizes, FontWeights } from "../../../assets/constants/Fonts";
 
 export function SelectItemsTitle() {
   return <Text style={styles.text}>Selecione seus itens:</Text>;
@@ -7,12 +9,12 @@ export function SelectItemsTitle() {
 
 const styles = StyleSheet.create({
   text: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
+    color: Colors.white,
+    fontSize: FontSizes.subtitle,
+    fontWeight: FontWeights.bold,
+    textAlign: "center",
     letterSpacing: 0.3,
-    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowColor: Colors.shadowDark,
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },

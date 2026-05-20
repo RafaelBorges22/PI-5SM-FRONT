@@ -1,11 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Animated,
-  View,
-} from 'react-native';
+    Animated,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { Colors } from "../../../assets/constants/Colors";
+import { FontSizes, FontWeights } from "../../../assets/constants/Fonts";
 
 interface CheckoutBarProps {
   totalItems: number;
@@ -14,19 +16,37 @@ interface CheckoutBarProps {
   onFinish: () => void;
 }
 
-export function CheckoutBar({ totalItems, totalPrice, onCart, onFinish }: CheckoutBarProps) {
+export function CheckoutBar({
+  totalItems,
+  totalPrice,
+  onCart,
+  onFinish,
+}: CheckoutBarProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const pressIn = () =>
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50 }).start();
+    Animated.spring(scale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 50,
+    }).start();
 
   const pressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
 
   return (
     <View style={styles.bar}>
       {/* Cart button */}
-      <TouchableOpacity style={styles.cartBtn} onPress={onCart} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.cartBtn}
+        onPress={onCart}
+        activeOpacity={0.8}
+      >
         <Text style={styles.cartIcon}>🛒</Text>
         {totalItems > 0 && (
           <View style={styles.cartBadge}>
@@ -55,63 +75,72 @@ export function CheckoutBar({ totalItems, totalPrice, onCart, onFinish }: Checko
 
 const styles = StyleSheet.create({
   bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(212,160,23,0.15)',
+    borderTopColor: Colors.goldSoft,
   },
   cartBtn: {
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
     paddingHorizontal: 4,
   },
   cartIcon: { fontSize: 28 },
   cartBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: '#D4A017',
+    backgroundColor: Colors.gold,
     borderRadius: 10,
     minWidth: 18,
     height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 3,
   },
-  cartBadgeText: { color: '#1a1a1a', fontSize: 10, fontWeight: '900' },
-  cartLabel: { color: '#aaa', fontSize: 10, marginTop: 2, fontWeight: '600' },
+  cartBadgeText: {
+    color: Colors.black,
+    fontSize: FontSizes.caption,
+    fontWeight: FontWeights.black,
+  },
+  cartLabel: {
+    color: Colors.gray,
+    fontSize: FontSizes.caption,
+    marginTop: 2,
+    fontWeight: FontWeights.semibold,
+  },
   finishWrapper: {
     flex: 1,
-    shadowColor: '#4CAF50',
+    shadowColor: Colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 8,
   },
   finishBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.success,
     borderRadius: 12,
     paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
   },
   finishHighlight: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: '50%',
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    height: "50%",
+    backgroundColor: "rgba(255,255,255,0.10)",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
   finishLabel: {
-    color: '#fff',
+    color: Colors.white,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 1.5,
   },
 });

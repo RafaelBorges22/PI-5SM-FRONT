@@ -2,20 +2,21 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  AppState, AppStateStatus,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+    ActivityIndicator,
+    Alert,
+    Animated,
+    AppState,
+    AppStateStatus,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "../../assets/constants/Colors";
 import { useAuth } from "../../context/AuthContext";

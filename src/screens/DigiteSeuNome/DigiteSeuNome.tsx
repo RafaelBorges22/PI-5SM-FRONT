@@ -8,13 +8,13 @@ import {
     ImageBackground,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
     StatusBar,
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../assets/constants/Colors";
 import { BackButton } from "../../components/BtnVoltar";
 import styles from "./Styles";

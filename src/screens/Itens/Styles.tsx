@@ -6,9 +6,9 @@ export default StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
     gap: 14,
   },
   topRow: {
@@ -19,6 +19,8 @@ export default StyleSheet.create({
   },
   tabs: {
     flexDirection: "row",
-    gap: 10,
+    gap: 8,
+    justifyContent: "center",
+    flexWrap: "wrap",
   },
 });

@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Item, CartEntry, Category } from '../Types';
-import { ItemCard } from './ItemCard';
+import React from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Colors } from "../../../assets/constants/Colors";
+import { FontSizes } from "../../../assets/constants/Fonts";
+import { CartEntry, Item } from "../Types";
+import { ItemCard } from "./ItemCard";
 
 interface ItemsGridProps {
   sections: { section: string; items: Item[] }[];
@@ -45,33 +47,36 @@ export function ItemsGrid({ sections, cart, onToggle }: ItemsGridProps) {
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: 'rgba(20,20,20,0.65)',
+    backgroundColor: Colors.surfaceOverlay,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(212,160,23,0.2)',
+    borderColor: Colors.goldOverlay,
   },
 
   scrollContent: {
     padding: 14,
     gap: 16,
+    paddingBottom: 112,
   },
 
   sectionLabel: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
+    color: Colors.white,
+    fontSize: FontSizes.body,
+    fontWeight: "700",
     marginBottom: 10,
     letterSpacing: 0.5,
   },
 
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     rowGap: 10,
   },
 
   cardWrapper: {
-    width: '48%',
+    width: "48%",
+    height: 192,
+    marginBottom: 8,
   },
 });

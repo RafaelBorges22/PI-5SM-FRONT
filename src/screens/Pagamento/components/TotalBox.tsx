@@ -1,14 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Colors } from "../../../assets/constants/Colors";
+import { FontSizes, FontWeights } from "../../../assets/constants/Fonts";
 
 type Props = {
   total: number;
 };
 
 export function TotalBox({ total }: Props) {
-  const formatted = total.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
+  const formatted = total.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
   });
 
   return (
@@ -24,21 +26,21 @@ export function TotalBox({ total }: Props) {
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: '#D4A017',
+    borderColor: Colors.gold,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: "center",
+    backgroundColor: Colors.blackOverlay,
   },
 
   text: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#D4A017'
+    fontSize: FontSizes.subtitle,
+    fontWeight: FontWeights.bold,
+    color: Colors.gold,
   },
 
   label: {
-    color: '#D4A017',
+    color: "#D4A017",
   },
 });
