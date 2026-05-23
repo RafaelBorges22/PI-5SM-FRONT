@@ -74,11 +74,18 @@ export function CheckoutBar({
 }
 
 const styles = StyleSheet.create({
-  bar: {
+bar: {
+    position: "absolute",
+    bottom: 0,            
+    left: 0,              
+    right: 0,             
+    backgroundColor: Colors.black, 
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
     paddingTop: 12,
+    paddingBottom: 24,    
+    paddingHorizontal: 16, 
     borderTopWidth: 1,
     borderTopColor: Colors.goldSoft,
   },
